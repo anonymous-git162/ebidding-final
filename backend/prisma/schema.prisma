@@ -1,0 +1,451 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  REQUESTER
+  PROCUREMENT
+  VENDOR
+  EVALUATOR
+  LEAD_EVALUATOR
+  APPROVER
+  ADMIN
+}
+
+enum ProcurementStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_PROCUREMENT_REVIEW
+  RETURNED_FOR_REVISION
+  APPROVED
+  RFI_PUBLISHED
+  RFI_COLLECTING
+  RFI_CLOSED
+  RFP_DRAFTING
+  RFP_PUBLISHED
+  RFQ_OPEN
+  VENDOR_RESPONSE_IN_PROGRESS
+  EBIDDING_PREP
+  EBIDDING_OPEN
+  EBIDDING_CLOSED
+  EVALUATION
+  PENDING_APPROVAL
+  RETURNED_FROM_APPROVAL
+  AWARD_APPROVED
+  AWARD_ANNOUNCED
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum CurrentOwnerRole {
+  REQUESTER
+  PROCUREMENT
+  VENDOR
+  EVALUATOR
+  LEAD_EVALUATOR
+  APPROVER
+  CLOSED
+}
+
+enum RequestType {
+  RFI
+  RFP
+  RFQ
+}
+
+enum VendorStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  REVISION_REQUESTED
+}
+
+enum EbiddingRoundStatus {
+  PENDING
+  OPEN
+  CLOSED
+}
+
+enum ApprovalDecision {
+  APPROVED
+  RETURNED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name")
+  role         UserRole
+  isActive     Boolean  @default(true) @map("is_active")
+  failedLoginAttempts Int @default(0) @map("failed_login_attempts")
+  lockedUntil  DateTime? @map("locked_until")
+  propertyId   String?  @map("property_id") @db.Uuid
+  departmentId String?  @map("department_id") @db.Uuid
+  managerId    String?  @map("manager_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  property              Property?          @relation(fields: [propertyId], references: [id])
+  department            Department?        @relation(fields: [departmentId], references: [id])
+  manager               User?              @relation("ManagerEmployees", fields: [managerId], references: [id])
+  directReports         User[]             @relation("ManagerEmployees")
+  procurements              Procurement[]     @relation("RequesterProcurements")
+  assignedApproverProcurements Procurement[] @relation("ApproverProcurements")
+  vendor                    Vendor?
+  evaluatorAssignments      EvaluatorAssignment[]
+  evaluatorReviews          EvaluatorReview[]
+  evaluationsLeadConsolidated EvaluationConsolidation[] @relation("LeadEvaluator")
+  approvals                 Approval[]
+  auditLogs                 AuditLog[]
+  files                     File[]
+  refreshTokens             RefreshToken[]
+  notifications             Notification[]
+
+  @@map("users")
+}
+
+model Vendor {
+  id           String       @id @default(uuid()) @db.Uuid
+  companyName  String       @map("company_name")
+  taxId        String?      @map("tax_id")
+  contactName  String       @map("contact_name")
+  contactEmail String       @map("contact_email")
+  phone        String?
+  address      String?
+  status       VendorStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  userId String @unique @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id])
+
+  invitations      VendorInvitation[]
+  submissions      RfqSubmission[]
+  bidResponses     EbiddingResponse[]
+  evaluatorReviews EvaluatorReview[]
+  wonResults       ProcurementResult[]
+
+  @@map("vendors")
+}
+
+model Property {
+  id   String @id @default(uuid()) @db.Uuid
+  code String @unique
+  name String
+
+  departments  Department[]
+  procurements Procurement[]
+  users        User[]
+
+  @@map("properties")
+}
+
+model Department {
+  id         String @id @default(uuid()) @db.Uuid
+  code       String @unique
+  name       String
+  propertyId String @map("property_id") @db.Uuid
+
+  property     Property       @relation(fields: [propertyId], references: [id])
+  procurements Procurement[]
+  users        User[]
+
+  @@map("departments")
+}
+
+model Procurement {
+  id                   String            @id @default(uuid()) @db.Uuid
+  requestNo            String            @unique @map("request_no")
+  requestType          RequestType       @map("request_type")
+  title                String
+  description          String?
+  businessNeed         String?           @map("business_need")
+  propertyId           String?           @map("property_id") @db.Uuid
+  departmentId         String?           @map("department_id") @db.Uuid
+  category             String?
+  currency             String?           @default("USD")
+  budgetEstimate       Decimal?          @map("budget_estimate")
+  justification        String?
+  requesterId          String            @map("requester_id") @db.Uuid
+  assignedApproverId   String?           @map("assigned_approver_id") @db.Uuid
+  status               ProcurementStatus @default(DRAFT)
+  currentOwnerRole     CurrentOwnerRole  @default(REQUESTER) @map("current_owner_role")
+  currentStage         String?           @map("current_stage")
+  approvalStatus       String?           @map("approval_status")
+  finalDecisionReason  String?           @map("final_decision_reason")
+  publishedAt          DateTime?         @map("published_at")
+  submissionDeadline   DateTime?         @map("submission_deadline")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+
+  requester            User                 @relation("RequesterProcurements", fields: [requesterId], references: [id])
+  assignedApprover     User?                @relation("ApproverProcurements", fields: [assignedApproverId], references: [id])
+  property              Property?            @relation(fields: [propertyId], references: [id])
+  department            Department?          @relation(fields: [departmentId], references: [id])
+  timelines             ProcurementTimeline[]
+  invitations           VendorInvitation[]
+  submissions           RfqSubmission[]
+  ebiddingRounds        EbiddingRound[]
+  evaluatorAssignments  EvaluatorAssignment[]
+  evaluatorReviews      EvaluatorReview[]
+  consolidations        EvaluationConsolidation[]
+  approvals             Approval[]
+  result                ProcurementResult?
+  files                 File[]
+
+  @@index([status])
+  @@index([requesterId])
+  @@index([propertyId])
+  @@index([currentOwnerRole])
+  @@map("procurements")
+}
+
+model ProcurementTimeline {
+  id            String   @id @default(uuid()) @db.Uuid
+  procurementId String   @map("procurement_id") @db.Uuid
+  eventType     String   @map("event_type")
+  actorRole     String   @map("actor_role")
+  actorId       String?  @map("actor_id") @db.Uuid
+  timestamp     DateTime @default(now())
+  metadata      Json?
+
+  procurement Procurement @relation(fields: [procurementId], references: [id])
+
+  @@index([procurementId])
+  @@map("procurement_timeline")
+}
+
+model VendorInvitation {
+  id               String           @id @default(uuid()) @db.Uuid
+  procurementId    String           @map("procurement_id") @db.Uuid
+  vendorId         String           @map("vendor_id") @db.Uuid
+  invitationStatus InvitationStatus @default(PENDING) @map("invitation_status")
+  invitedAt        DateTime         @default(now()) @map("invited_at")
+  acceptedAt       DateTime?        @map("accepted_at")
+  declinedAt       DateTime?        @map("declined_at")
+  deadline         DateTime?
+  metadata         Json?
+
+  procurement Procurement @relation(fields: [procurementId], references: [id])
+  vendor      Vendor      @relation(fields: [vendorId], references: [id])
+
+  @@index([procurementId])
+  @@index([vendorId])
+  @@map("vendor_invitations")
+}
+
+model RfqSubmission {
+  id            String           @id @default(uuid()) @db.Uuid
+  procurementId String           @map("procurement_id") @db.Uuid
+  vendorId      String           @map("vendor_id") @db.Uuid
+  price         Decimal
+  proposalText  String?          @map("proposal_text")
+  status        SubmissionStatus @default(DRAFT)
+  submittedAt   DateTime?        @map("submitted_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  procurement Procurement @relation(fields: [procurementId], references: [id])
+  vendor      Vendor      @relation(fields: [vendorId], references: [id])
+
+  @@index([procurementId])
+  @@index([vendorId])
+  @@map("rfq_submissions")
+}
+
+model EbiddingRound {
+  id            String              @id @default(uuid()) @db.Uuid
+  procurementId String              @map("procurement_id") @db.Uuid
+  roundNo       Int                 @map("round_no")
+  startsAt      DateTime?           @map("starts_at")
+  endsAt        DateTime?           @map("ends_at")
+  status        EbiddingRoundStatus @default(PENDING)
+  createdBy     String              @map("created_by") @db.Uuid
+  createdAt     DateTime            @default(now()) @map("created_at")
+
+  procurement Procurement      @relation(fields: [procurementId], references: [id])
+  responses   EbiddingResponse[]
+
+  @@index([procurementId])
+  @@map("ebidding_rounds")
+}
+
+model EbiddingResponse {
+  id               String   @id @default(uuid()) @db.Uuid
+  ebiddingRoundId  String   @map("ebidding_round_id") @db.Uuid
+  vendorId         String   @map("vendor_id") @db.Uuid
+  bidAmount        Decimal  @map("bid_amount")
+  submittedAt      DateTime @default(now()) @map("submitted_at")
+
+  round  EbiddingRound @relation(fields: [ebiddingRoundId], references: [id])
+  vendor Vendor        @relation(fields: [vendorId], references: [id])
+
+  @@index([ebiddingRoundId])
+  @@index([vendorId])
+  @@map("ebidding_responses")
+}
+
+model EvaluatorAssignment {
+  id            String   @id @default(uuid()) @db.Uuid
+  procurementId String   @map("procurement_id") @db.Uuid
+  evaluatorId   String   @map("evaluator_id") @db.Uuid
+  isLead        Boolean  @default(false) @map("is_lead")
+  assignedAt    DateTime @default(now()) @map("assigned_at")
+
+  procurement Procurement @relation(fields: [procurementId], references: [id])
+  evaluator   User        @relation(fields: [evaluatorId], references: [id])
+
+  @@unique([procurementId, evaluatorId])
+  @@index([procurementId])
+  @@map("evaluator_assignments")
+}
+
+model EvaluatorReview {
+  id            String   @id @default(uuid()) @db.Uuid
+  evaluatorId   String   @map("evaluator_id") @db.Uuid
+  procurementId String   @map("procurement_id") @db.Uuid
+  vendorId      String   @map("vendor_id") @db.Uuid
+  score         Float
+  comment       String?
+  submittedAt   DateTime @default(now()) @map("submitted_at")
+
+  evaluator   User        @relation(fields: [evaluatorId], references: [id])
+  procurement Procurement @relation(fields: [procurementId], references: [id])
+  vendor      Vendor      @relation(fields: [vendorId], references: [id])
+
+  @@unique([evaluatorId, procurementId, vendorId])
+  @@index([procurementId])
+  @@map("evaluator_reviews")
+}
+
+model EvaluationConsolidation {
+  id              String   @id @default(uuid()) @db.Uuid
+  procurementId   String   @unique @map("procurement_id") @db.Uuid
+  avgScore        Float    @map("avg_score")
+  voteSummary     Json     @map("vote_summary")
+  variance        Float?
+  recommendation  String?
+  leadCommentary  String?  @map("lead_commentary")
+  generatedAt     DateTime @default(now()) @map("generated_at")
+  leadEvaluatorId String?  @map("lead_evaluator_id") @db.Uuid
+
+  procurement   Procurement @relation(fields: [procurementId], references: [id])
+  leadEvaluator User?       @relation("LeadEvaluator", fields: [leadEvaluatorId], references: [id])
+
+  @@map("evaluation_consolidations")
+}
+
+model Approval {
+  id            String            @id @default(uuid()) @db.Uuid
+  procurementId String            @map("procurement_id") @db.Uuid
+  approverId    String            @map("approver_id") @db.Uuid
+  decision      ApprovalDecision
+  comment       String?
+  decidedAt     DateTime          @default(now()) @map("decided_at")
+
+  procurement Procurement @relation(fields: [procurementId], references: [id])
+  approver    User        @relation(fields: [approverId], references: [id])
+
+  @@index([procurementId])
+  @@map("approvals")
+}
+
+model ProcurementResult {
+  id               String    @id @default(uuid()) @db.Uuid
+  procurementId    String    @unique @map("procurement_id") @db.Uuid
+  winningVendorId  String?   @map("winning_vendor_id") @db.Uuid
+  announcementText String?   @map("announcement_text")
+  announcedAt      DateTime? @map("announced_at")
+  closedAt         DateTime? @map("closed_at")
+
+  procurement   Procurement @relation(fields: [procurementId], references: [id])
+  winningVendor Vendor?     @relation(fields: [winningVendorId], references: [id])
+
+  @@map("procurement_results")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  module     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  action     String
+  actorId    String?  @map("actor_id") @db.Uuid
+  actorRole  String?  @map("actor_role")
+  beforeData Json?    @map("before_data")
+  afterData  Json?    @map("after_data")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model File {
+  id            String   @id @default(uuid()) @db.Uuid
+  fileName      String   @map("file_name")
+  mimeType      String   @map("mime_type")
+  fileSize      Int      @map("file_size")
+  storagePath   String   @map("storage_path")
+  uploadedBy    String   @map("uploaded_by") @db.Uuid
+  procurementId String?  @map("procurement_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  uploader    User        @relation(fields: [uploadedBy], references: [id])
+  procurement Procurement? @relation(fields: [procurementId], references: [id])
+
+  @@map("files")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @map("token_hash") @unique
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Notification {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  title         String
+  message       String
+  type          String    @default("info")
+  entityType    String?   @map("entity_type")
+  entityId      String?   @map("entity_id")
+  link          String?
+  readAt        DateTime? @map("read_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}

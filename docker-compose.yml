@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ebidding
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ebidding
+      JWT_SECRET: ebidding-jwt-secret-2024-production
+      JWT_EXPIRY: 15m
+      REFRESH_TOKEN_SECRET: ebidding-refresh-token-2024-production
+      REFRESH_TOKEN_EXPIRY: 7d
+      PORT: 3000
+      CORS_ORIGINS: http://localhost:80,http://localhost:5173
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:80
+      NODE_ENV: development
+      AI_PROVIDER: groq
+      GROQ_API_KEY: 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
+      GROQ_MODEL: llama-3.3-70b-versatile
+      COPILOT_STUDIO_SECRET: 7J0dH05AItyG8b6m0lmvDle02AQBJew4tHUSxKTtgtox3U8Qz9NBJQQJ99CFACi5YpzAArohAAABAZBS2jdr.9QWkR2b6SERS3vsY6PwG4UBZI8X449ZOq3vuUpf2epwndDWvPeltJQQJ99CFACi5YpzAArohAAABAZBS4UmW
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

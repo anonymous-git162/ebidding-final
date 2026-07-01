@@ -1,0 +1,42 @@
+const createMockModel = () => ({
+  findUnique: jest.fn(),
+  findFirst: jest.fn(),
+  findMany: jest.fn(),
+  create: jest.fn(),
+  createMany: jest.fn(),
+  update: jest.fn(),
+  updateMany: jest.fn(),
+  delete: jest.fn(),
+  deleteMany: jest.fn(),
+  count: jest.fn(),
+  groupBy: jest.fn(),
+  upsert: jest.fn(),
+});
+
+export const mockPrisma = (): any => ({
+  user: createMockModel(),
+  vendor: createMockModel(),
+  property: createMockModel(),
+  department: createMockModel(),
+  procurement: createMockModel(),
+  procurementTimeline: createMockModel(),
+  vendorInvitation: createMockModel(),
+  rfqSubmission: createMockModel(),
+  ebiddingRound: createMockModel(),
+  ebiddingResponse: createMockModel(),
+  evaluatorAssignment: createMockModel(),
+  evaluatorReview: createMockModel(),
+  evaluationConsolidation: createMockModel(),
+  approval: createMockModel(),
+  procurementResult: createMockModel(),
+  auditLog: createMockModel(),
+  file: createMockModel(),
+  refreshToken: createMockModel(),
+  notification: createMockModel(),
+  $connect: jest.fn(),
+  $disconnect: jest.fn(),
+  $queryRaw: jest.fn(),
+  $transaction: jest.fn((fn: any) => fn(mockPrisma() as any)),
+});
+
+export type MockPrisma = ReturnType<typeof mockPrisma>;
