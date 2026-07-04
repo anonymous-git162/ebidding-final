@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import * as crypto from 'crypto';
+import { execSync } from 'child_process';
 import { AppModule } from './app.module';
 
 function requireEnv(name: string): string {
@@ -19,6 +20,12 @@ function requireEnv(name: string): string {
 async function bootstrap() {
   requireEnv('JWT_SECRET');
   requireEnv('REFRESH_TOKEN_SECRET');
+
+  // ponytail: run schema push at startup for reliability; switch to prisma migrate deploy for strict migration tracking
+  console.log('>>> Running prisma db push...');
+  execSync('npx prisma db push 2>&1', { stdio: 'inherit' });
+  console.log('>>> Running seed...');
+  execSync('node prisma/seed.prod.js 2>&1', { stdio: 'inherit' });
 
   const app = await NestFactory.create(AppModule);
 
