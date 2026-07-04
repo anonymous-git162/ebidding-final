@@ -29,7 +29,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
-  @Throttle({ default: { limit: 100, ttl: 60000 } })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password' })
   async login(
@@ -49,7 +49,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 50, ttl: 60000 } })
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('register')
   @ApiOperation({
     summary: 'Register a new user (self-registration, REQUESTER role only)',

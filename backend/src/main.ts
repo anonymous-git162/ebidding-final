@@ -24,6 +24,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Security headers
+  // Security headers
   app.use(helmet({
     contentSecurityPolicy: {
       useDefaults: true,
@@ -37,6 +38,11 @@ async function bootstrap() {
         objectSrc: [`'none'`],
         frameSrc: [`'none'`],
       },
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
     },
   }));
 
