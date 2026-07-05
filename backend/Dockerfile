@@ -12,6 +12,6 @@ RUN npm ci --omit=dev
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
-ARG BUILD_DATE
+ARG BUILD_DATE=2026-07-05
 EXPOSE 3000
 CMD ["node", "dist/src/main.js"]
