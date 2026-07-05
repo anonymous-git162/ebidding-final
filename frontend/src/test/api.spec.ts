@@ -12,6 +12,7 @@ vi.mock('axios', () => ({
   default: {
     create: vi.fn(() => mockApiInstance),
     post: (...args: any[]) => mockApiInstance.post(...args),
+    defaults: { headers: { common: {} } },
   },
 }));
 
