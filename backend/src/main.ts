@@ -17,7 +17,6 @@ function requireEnv(name: string): string {
 }
 
 async function bootstrap() {
-  process.stderr.write('BOOT\n');
   requireEnv('JWT_SECRET');
   requireEnv('REFRESH_TOKEN_SECRET');
 
