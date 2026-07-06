@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: ebidding-final-backend
+    runtime: node
+    region: singapore
+    plan: free
+    branch: master
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && node dist/src/main.js
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://ebidding-final.vercel.app
+      - key: JWT_SECRET
+        sync: false
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
