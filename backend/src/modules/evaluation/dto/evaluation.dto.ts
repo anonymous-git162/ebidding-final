@@ -6,8 +6,9 @@ import {
   Min,
   Max,
   ArrayMinSize,
+  ValidateNested,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { stripHtml } from '../../../common/helpers/sanitize';
 
 const Sanitize = () =>
@@ -50,10 +51,26 @@ export class SubmitReviewDto {
   criterionScores?: { criteriaIndex: number; score: number }[];
 }
 
+export class CriterionDto {
+  @IsString()
+  name: string;
+
+  @IsNumber()
+  @Min(0)
+  weight: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  maxScore?: number;
+}
+
 export class SetCriteriaDto {
   @IsArray()
   @ArrayMinSize(1)
-  criteria: { name: string; weight: number; maxScore?: number }[];
+  @ValidateNested({ each: true })
+  @Type(() => CriterionDto)
+  criteria: CriterionDto[];
 }
 
 export class ConsolidateDto {
