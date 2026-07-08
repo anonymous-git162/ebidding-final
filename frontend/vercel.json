@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://ebidding-final.onrender.com/api/$1" },
+    { "source": "/api/(.*)", "destination": "https://ebidding-final-backend.onrender.com/api/$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
