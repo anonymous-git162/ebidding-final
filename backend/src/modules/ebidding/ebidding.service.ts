@@ -2,12 +2,19 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class EbiddingService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(EbiddingService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   private async checkMinVendors(procurementId: string) {
     const acceptedCount = await this.prisma.vendorInvitation.count({
@@ -68,10 +75,52 @@ export class EbiddingService {
       data: { status: 'CLOSED', endsAt: new Date() },
     });
 
-    return this.prisma.ebiddingRound.update({
+    const updated = await this.prisma.ebiddingRound.update({
       where: { id },
       data: { status: 'OPEN', startsAt: new Date() },
     });
+
+    await this.notifyVendorsRoundOpen(round, updated);
+    return updated;
+  }
+
+  private async notifyVendorsRoundOpen(
+    round: { procurementId: string; roundNo: number },
+    _updated: { id: string },
+  ) {
+    try {
+      const [procurement, vendors] = await Promise.all([
+        this.prisma.procurement.findUnique({
+          where: { id: round.procurementId },
+          select: { title: true },
+        }),
+        this.prisma.vendorInvitation.findMany({
+          where: {
+            procurementId: round.procurementId,
+            invitationStatus: 'ACCEPTED',
+          },
+          include: { vendor: { select: { userId: true } } },
+        }),
+      ]);
+
+      const userIds = vendors.map((v) => v.vendor.userId);
+      if (!userIds.length) return;
+
+      await this.notificationsService.createForUsers(userIds, {
+        title: 'New Bidding Round Open',
+        message: `Round ${round.roundNo} is now open for "${procurement?.title || round.procurementId}". Place your bid now.`,
+        type: 'info',
+        entityType: 'ebidding_round',
+        entityId: _updated.id,
+        link: '/bidding',
+      });
+
+      this.logger.log(
+        `Notified ${userIds.length} vendor(s) about round ${round.roundNo} opening`,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to send round-open notification: ${error}`);
+    }
   }
 
   async closeRound(id: string, _userId: string) {
