@@ -14,6 +14,7 @@ export class RfqSubmissionService {
     vendorId: string,
     price: number,
     proposalText?: string,
+    fileIds?: string[],
   ) {
     const procurement = await this.prisma.procurement.findUnique({
       where: { id: procurementId },
@@ -30,9 +31,18 @@ export class RfqSubmissionService {
       );
     }
 
-    return this.prisma.rfqSubmission.create({
+    const submission = await this.prisma.rfqSubmission.create({
       data: { procurementId, vendorId, price, proposalText, status: 'DRAFT' },
     });
+
+    if (fileIds && fileIds.length > 0) {
+      await this.prisma.file.updateMany({
+        where: { id: { in: fileIds } },
+        data: { submissionId: submission.id },
+      });
+    }
+
+    return submission;
   }
 
   async submit(id: string, vendorUserId: string) {
@@ -57,6 +67,7 @@ export class RfqSubmissionService {
     vendorUserId: string,
     price?: number,
     proposalText?: string,
+    fileIds?: string[],
   ) {
     const submission = await this.prisma.rfqSubmission.findUnique({
       where: { id },
@@ -68,19 +79,34 @@ export class RfqSubmissionService {
     if (submission.status === 'SUBMITTED')
       throw new BadRequestException('Cannot edit submitted proposal');
 
-    return this.prisma.rfqSubmission.update({
+    const updated = await this.prisma.rfqSubmission.update({
       where: { id },
       data: {
         ...(price !== undefined && { price }),
-        ...(proposalText !== undefined && { proposalText }),
-      },
-    });
+         ...(proposalText !== undefined && { proposalText }),
+       },
+     });
+
+    if (fileIds !== undefined) {
+      await this.prisma.file.updateMany({
+        where: { submissionId: id },
+        data: { submissionId: null },
+      });
+      if (fileIds.length > 0) {
+        await this.prisma.file.updateMany({
+          where: { id: { in: fileIds } },
+          data: { submissionId: id },
+        });
+      }
+    }
+
+    return updated;
   }
 
   async findByProcurement(procurementId: string) {
     return this.prisma.rfqSubmission.findMany({
       where: { procurementId },
-      include: { vendor: { select: { id: true, companyName: true } } },
+      include: { vendor: { select: { id: true, companyName: true } }, files: true },
     });
   }
 
@@ -101,6 +127,7 @@ export class RfqSubmissionService {
         procurement: {
           select: { id: true, requestNo: true, title: true },
         },
+        files: true
       },
       orderBy: { updatedAt: 'desc' },
     });

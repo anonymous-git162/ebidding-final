@@ -24,6 +24,7 @@ export default function SubmissionsPage() {
   useEffect(() => { load(); }, []);
 
   const submittedIds = new Set(mySubmissions.filter(s => s.status === 'SUBMITTED').map(s => s.procurementId));
+  const submissionMap = new Map(mySubmissions.map(s => [s.procurementId, s]));
 
   const load = async () => {
     try {
@@ -101,10 +102,14 @@ export default function SubmissionsPage() {
                     <TableCell>Status</TableCell>
                     <TableCell>Deadline</TableCell>
                     <TableCell align="center">My Submission</TableCell>
+                    <TableCell align="center">Attachments</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {procurements.map((p) => (
+                  {procurements.map((p) => {
+                    const sub = submissionMap.get(p.id);
+                    const fileCount = sub?.files?.length || 0;
+                    return (
                     <TableRow key={p.id}>
                       <TableCell>{p.requestNo}</TableCell>
                       <TableCell>{p.title}</TableCell>
@@ -117,8 +122,16 @@ export default function SubmissionsPage() {
                           <Chip label="Not yet" size="small" variant="outlined" color="default" />
                         )}
                       </TableCell>
+                      <TableCell align="center">
+                        {fileCount > 0 ? (
+                          <Chip label={`${fileCount} file${fileCount > 1 ? 's' : ''}`} size="small" color="info" variant="outlined" icon={<Icon name="AttachFile" />} />
+                        ) : (
+                          <Chip label="None" size="small" variant="outlined" color="default" />
+                        )}
+                      </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

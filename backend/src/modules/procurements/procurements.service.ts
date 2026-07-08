@@ -233,6 +233,7 @@ export class ProcurementsService {
         submissions: {
           include: {
             vendor: { select: { id: true, companyName: true } },
+            files: true,
           },
         },
         _count: {

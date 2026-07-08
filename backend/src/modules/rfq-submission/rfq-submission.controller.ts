@@ -43,20 +43,22 @@ export class RfqSubmissionController {
       where: { userId: req.user.id },
     });
     if (!vendor) throw new BadRequestException('Vendor profile not found');
-    return this.submissionService.create(
-      body.procurementId,
-      vendor.id,
-      body.price,
-      body.proposalText,
-    );
-  }
+     return this.submissionService.create(
+       body.procurementId,
+       vendor.id,
+       body.price,
+       body.proposalText,
+       body.fileIds,
+     );
+   }
+
 
   @Put(':id')
   @Roles(UserRole.VENDOR)
   @ApiOperation({ summary: 'Update a draft submission' })
   update(
     @Param('id') id: string,
-    @Body() body: { price?: number; proposalText?: string },
+    @Body() body: { price?: number; proposalText?: string; fileIds?: string[] },
     @Request() req: any,
   ) {
     return this.submissionService.update(
@@ -64,6 +66,7 @@ export class RfqSubmissionController {
       req.user.id,
       body.price,
       body.proposalText,
+      body.fileIds,
     );
   }
 

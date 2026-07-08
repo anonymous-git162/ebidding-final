@@ -376,14 +376,15 @@ export default function ProcurementDetailPage() {
                     <Typography variant="subtitle2" fontWeight={600} color="text.secondary">Vendor Submissions</Typography>
                     {procurement.submissions && procurement.submissions.length > 0 && (
                       <Button size="small" variant="outlined" startIcon={<Icon name="Save" />} onClick={() => {
-                        const rows = [['Vendor', 'Price', 'Status', 'Submitted']];
-                        (procurement.submissions || []).forEach((sub: any) => {
-                          rows.push([
-                            sub.vendor?.companyName || '',
-                            String(sub.price),
-                            sub.status || '',
-                            new Date(sub.submittedAt || sub.createdAt).toLocaleDateString(),
-                          ]);
+                         const rows = [['Vendor', 'Price', 'Files', 'Status', 'Submitted']];
+                         (procurement.submissions || []).forEach((sub: any) => {
+                           rows.push([
+                             sub.vendor?.companyName || '',
+                             String(sub.price),
+                             sub.files && sub.files.length > 0 ? sub.files.map((f: any) => f.fileName).join('; ') : '—',
+                             sub.status || '',
+                             new Date(sub.submittedAt || sub.createdAt).toLocaleDateString(),
+                           ]);
                         });
                         const csv = rows.map(r => r.map(c => `"${sanitizeCSVCell(c).replace(/"/g, '""')}"`).join(',')).join('\n');
                         downloadCSV(csv, `submissions-${procurement.requestNo}.csv`);
@@ -401,20 +402,45 @@ export default function ProcurementDetailPage() {
                     <TableContainer>
                       <Table size="small">
                         <TableHead>
-                          <TableRow>
-                            <TableCell>Vendor</TableCell>
-                            <TableCell>Price</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Submitted</TableCell>
-                          </TableRow>
+                           <TableRow>
+                             <TableCell>Vendor</TableCell>
+                             <TableCell>Price</TableCell>
+                             <TableCell>Files</TableCell>
+                             <TableCell>Status</TableCell>
+                             <TableCell>Submitted</TableCell>
+                           </TableRow>
+
                         </TableHead>
                         <TableBody>
                           {(procurement.submissions || []).map((sub: any) => (
                             <TableRow key={sub.id}>
                               <TableCell>{sub.vendor?.companyName || '—'}</TableCell>
-                              <TableCell>${Number(sub.price).toLocaleString()}</TableCell>
-                              <TableCell>{sub.status}</TableCell>
-                              <TableCell>{new Date(sub.submittedAt || sub.createdAt).toLocaleDateString()}</TableCell>
+                               <TableCell>${Number(sub.price).toLocaleString()}</TableCell>
+                               <TableCell>
+                                 {sub.files && sub.files.length > 0 ? (
+                                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                     {sub.files.map((file: any) => (
+                                       <Tooltip key={file.id} title={file.fileName}>
+                                         <Button
+                                           size="small"
+                                           variant="outlined"
+                                           startIcon={<Icon name="Description" />}
+                                           href={`/api/files/${file.id}`}
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                         >
+                                           {file.fileName.split('.').pop()}
+                                         </Button>
+                                       </Tooltip>
+                                     ))}
+                                   </Box>
+                                 ) : (
+                                   '—'
+                                 )}
+                               </TableCell>
+                               <TableCell>{sub.status}</TableCell>
+                               <TableCell>{new Date(sub.submittedAt || sub.createdAt).toLocaleDateString()}</TableCell>
+
                             </TableRow>
                           ))}
                         </TableBody>
