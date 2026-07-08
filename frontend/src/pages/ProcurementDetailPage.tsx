@@ -12,7 +12,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 
-const STATUS_FLOW = ['DRAFT','SUBMITTED','UNDER_PROCUREMENT_REVIEW','APPROVED','RFP_PUBLISHED','RFQ_OPEN','VENDOR_RESPONSE_IN_PROGRESS','EBIDDING_PREP','EBIDDING_OPEN','EBIDDING_CLOSED','EVALUATION','PENDING_APPROVAL','AWARD_APPROVED','AWARD_ANNOUNCED','COMPLETED'];
+const STATUS_FLOW = ['DRAFT','SUBMITTED','UNDER_PROCUREMENT_REVIEW','RETURNED_FOR_REVISION','APPROVED','RFI_PUBLISHED','RFI_COLLECTING','RFI_CLOSED','RFP_DRAFTING','RFP_PUBLISHED','RFQ_OPEN','VENDOR_RESPONSE_IN_PROGRESS','EBIDDING_PREP','EBIDDING_OPEN','EBIDDING_CLOSED','EVALUATION','PENDING_APPROVAL','RETURNED_FROM_APPROVAL','AWARD_APPROVED','AWARD_ANNOUNCED','COMPLETED','REJECTED','CANCELLED'];
 
 function getStepIndex(status: string) {
   return STATUS_FLOW.indexOf(status);
@@ -194,6 +194,11 @@ export default function ProcurementDetailPage() {
           <Typography variant="subtitle2" fontWeight={600} color="text.secondary">Workflow Progress</Typography>
         </Box>
         <CardContent sx={{ py: 2, px: 2 }}>
+          {stepIdx < 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 1 }}>
+              Current status: <StatusBadge status={status} />
+            </Typography>
+          ) : (
           <Box sx={{ display: 'flex', gap: 0, overflowX: 'auto', pb: 0.5 }}>
             {STATUS_FLOW.map((s, idx) => {
               const isComplete = idx < stepIdx;
@@ -221,6 +226,7 @@ export default function ProcurementDetailPage() {
               );
             })}
           </Box>
+          )}
         </CardContent>
       </Card>
 
