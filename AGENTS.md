@@ -84,7 +84,7 @@ ebidding-final/
 | Backend TypeScript | `tsc --noEmit` | — | ✅ Clean |
 | Frontend TypeScript | `tsc --noEmit` | — | ✅ Clean |
 | Backend e2e | Supertest | 101 (14 suites) | ✅ Passed |
-| Playwright e2e | Playwright | 49 | ✅ Passed |
+| Playwright e2e | Playwright | 50 | ✅ Passed |
 
 ## Test Patterns
 
