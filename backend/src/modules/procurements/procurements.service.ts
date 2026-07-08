@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { Prisma, ProcurementStatus, UserRole } from '@prisma/client';
+import { Prisma, ProcurementStatus, UserRole, SubmissionStatus } from '@prisma/client';
 import { WORKFLOW_TRANSITIONS } from '../../common/enums';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ApprovalService } from '../approval/approval.service';
@@ -417,6 +417,14 @@ export class ProcurementsService {
   }
 
   async startEbidding(id: string, userId: string) {
+    const count = await this.prisma.rfqSubmission.count({
+      where: { procurementId: id, status: SubmissionStatus.SUBMITTED },
+    });
+    if (count < 1) {
+      throw new BadRequestException(
+        'At least 1 vendor must submit a proposal before starting e-bidding.',
+      );
+    }
     return this.transition(
       id,
       'EBIDDING_PREP',
