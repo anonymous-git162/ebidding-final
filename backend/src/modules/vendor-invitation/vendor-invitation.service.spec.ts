@@ -23,6 +23,7 @@ describe('VendorInvitationService', () => {
 
   describe('invite', () => {
     it('should invite multiple vendors to a procurement', async () => {
+      prisma.procurement.findUnique.mockResolvedValue({ id: 'p-1' } as any);
       prisma.vendorInvitation.create
         .mockResolvedValueOnce({ id: 'inv-1', vendorId: 'v-1' } as any)
         .mockResolvedValueOnce({ id: 'inv-2', vendorId: 'v-2' } as any);
@@ -33,6 +34,7 @@ describe('VendorInvitationService', () => {
     });
 
     it('should handle single vendor invitation', async () => {
+      prisma.procurement.findUnique.mockResolvedValue({ id: 'p-1' } as any);
       prisma.vendorInvitation.create.mockResolvedValue({
         id: 'inv-1',
         vendorId: 'v-1',

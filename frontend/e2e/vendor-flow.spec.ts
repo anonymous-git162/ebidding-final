@@ -1,15 +1,22 @@
 import { test, expect } from '@playwright/test';
+import { loginOnce, restoreSession } from './test-utils';
 
 const VENDOR_EMAIL = 'vendor@ebidding.com';
-const VENDOR_PASSWORD = 'Password123';
 
 test.describe('Vendor Flow', () => {
+  test.beforeAll(async ({ browser }) => {
+    const ctx = await browser.newContext();
+    await loginOnce(ctx, VENDOR_EMAIL);
+    await ctx.close();
+  });
+
+  test.beforeEach(async ({ page, context }) => {
+    await restoreSession(context, VENDOR_EMAIL);
+    await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
+  });
+
   test('vendor can login and view invitations', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(VENDOR_EMAIL);
-    await page.getByLabel('Password').fill(VENDOR_PASSWORD);
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
 
     await page.getByText('My Invitations').first().click();
     await expect(page).toHaveURL(/invitations/);
@@ -17,36 +24,18 @@ test.describe('Vendor Flow', () => {
   });
 
   test('vendor can navigate to submissions', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(VENDOR_EMAIL);
-    await page.getByLabel('Password').fill(VENDOR_PASSWORD);
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
-
     await page.getByText('Submissions').first().click();
     await expect(page).toHaveURL(/submissions/);
     await expect(page.getByRole('heading', { name: 'Submissions' })).toBeVisible();
   });
 
   test('vendor can view analytics', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(VENDOR_EMAIL);
-    await page.getByLabel('Password').fill(VENDOR_PASSWORD);
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
-
     await page.getByText('Analytics').first().click();
     await expect(page).toHaveURL(/analytics/);
     await expect(page.getByRole('heading', { name: 'Vendor Analytics' })).toBeVisible();
   });
 
   test('vendor can see submissions page with procurements', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(VENDOR_EMAIL);
-    await page.getByLabel('Password').fill(VENDOR_PASSWORD);
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
-
     await page.route('**/procurements*', (route) => {
       route.fulfill({
         status: 200,

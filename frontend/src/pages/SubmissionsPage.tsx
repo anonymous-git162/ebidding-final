@@ -58,7 +58,10 @@ export default function SubmissionsPage() {
         proposalText: form.proposalText,
         fileIds: fileAttachments.map(a => a.id),
       });
-      if (data?.id) await api.put(`/rfq-submissions/${data.id}/submit`);
+      if (data?.id) {
+        await api.put(`/rfq-submissions/${data.id}/submit`);
+        setMySubmissions(prev => [...prev, { ...data, status: 'SUBMITTED', procurementId: form.procurementId }]);
+      }
       setDialogOpen(false);
       setForm({ procurementId: '', price: '', proposalText: '' });
       setFileAttachments([]);

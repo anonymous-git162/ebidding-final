@@ -1,15 +1,22 @@
 import { test, expect } from '@playwright/test';
+import { loginOnce, restoreSession } from './test-utils';
 
 const ADMIN_EMAIL = 'admin@ebidding.com';
-const PASSWORD = 'Password123';
 
 test.describe('Dark Theme', () => {
+  test.beforeAll(async ({ browser }) => {
+    const ctx = await browser.newContext();
+    await loginOnce(ctx, ADMIN_EMAIL);
+    await ctx.close();
+  });
+
+  test.beforeEach(async ({ context }) => {
+    await restoreSession(context, ADMIN_EMAIL);
+  });
+
   test('can toggle between light and dark mode', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(ADMIN_EMAIL);
-    await page.getByLabel('Password').fill(PASSWORD);
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
+    await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
 
     // The theme toggle is a Tooltip-wrapped IconButton in the AppBar
     // Find it by looking for the tooltip text
@@ -30,11 +37,8 @@ test.describe('Dark Theme', () => {
   });
 
   test('dark theme persists across navigation', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(ADMIN_EMAIL);
-    await page.getByLabel('Password').fill(PASSWORD);
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
+    await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
 
     // Toggle theme via localStorage directly
     await page.evaluate(() => {

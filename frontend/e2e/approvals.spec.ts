@@ -1,13 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { loginOnce, restoreSession } from './test-utils';
 
 test.describe('Approvals', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.context().clearCookies();
-    await page.goto('/login');
-    await page.getByLabel('Email').fill('approver@ebidding.com');
-    await page.getByLabel('Password').fill('Password123');
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
+  test.beforeAll(async ({ browser }) => {
+    const ctx = await browser.newContext();
+    await loginOnce(ctx, 'approver@ebidding.com');
+    await ctx.close();
+  });
+
+  test.beforeEach(async ({ context }) => {
+    await restoreSession(context, 'approver@ebidding.com');
   });
 
   test('shows approval inbox page for approver', async ({ page }) => {

@@ -23,6 +23,7 @@ describe('RfqSubmissionService', () => {
 
   describe('create', () => {
     it('should create a draft RFQ submission', async () => {
+      prisma.procurement.findUnique.mockResolvedValue({ id: 'p-1' } as any);
       const mockVendor = { id: 'v-1', userId: 'u-1' };
       prisma.vendor.findUnique.mockResolvedValue(mockVendor as any);
       prisma.rfqSubmission.create.mockResolvedValue({

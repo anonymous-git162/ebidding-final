@@ -15,6 +15,12 @@ export class VendorInvitationService {
     userId: string,
     deadline?: string,
   ) {
+    const procurement = await this.prisma.procurement.findUnique({
+      where: { id: procurementId },
+      select: { id: true },
+    });
+    if (!procurement) throw new NotFoundException('Procurement not found');
+
     const invitations = await Promise.all(
       vendorIds.map((vendorId) =>
         this.prisma.vendorInvitation.create({

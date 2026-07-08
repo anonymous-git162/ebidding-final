@@ -1,13 +1,18 @@
 import { test, expect } from '@playwright/test';
+import { loginOnce, restoreSession } from './test-utils';
 
 test.describe('Dashboard', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.context().clearCookies();
-    await page.goto('/login');
-    await page.getByLabel('Email').fill('requester@ebidding.com');
-    await page.getByLabel('Password').fill('Password123');
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
+  test.beforeAll(async ({ browser }) => {
+    const ctx = await browser.newContext();
+    await loginOnce(ctx, 'requester@ebidding.com');
+    await loginOnce(ctx, 'approver@ebidding.com');
+    await ctx.close();
+  });
+
+  test.beforeEach(async ({ page, context }) => {
+    await restoreSession(context, 'requester@ebidding.com');
+    await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
   });
 
   test('renders KPI cards with key metrics', async ({ page }) => {
@@ -36,13 +41,10 @@ test.describe('Dashboard', () => {
     await expect(page).toHaveURL(/\/procurements/, { timeout: 10000 });
   });
 
-  test('shows approval inbox when logged in as approver', async ({ page }) => {
-    await page.context().clearCookies();
-    await page.goto('/login');
-    await page.getByLabel('Email').fill('approver@ebidding.com');
-    await page.getByLabel('Password').fill('Password123');
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
+  test('shows approval inbox when logged in as approver', async ({ page, context }) => {
+    await restoreSession(context, 'approver@ebidding.com');
+    await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
 
     await expect(page.getByText('Quick Actions').first()).toBeVisible();
     await expect(page.getByText('Approval Inbox').first()).toBeVisible();
