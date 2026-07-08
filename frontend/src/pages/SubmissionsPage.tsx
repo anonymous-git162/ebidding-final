@@ -67,7 +67,6 @@ export default function SubmissionsPage() {
       setFileAttachments([]);
       setFileUploadKey(k => k + 1);
       setSuccess('Submission sent successfully!');
-      load();
       setTimeout(() => setSuccess(''), 5000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed');
