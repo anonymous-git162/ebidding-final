@@ -5,6 +5,8 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  schedule:
+    - cron: '0 6 * * *'  # Daily 6 AM UTC
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,20 +17,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: 'npm'
 
-      - name: Install Dependencies (Root)
-        run: npm ci
-
       - name: Install Dependencies (Backend)
         run: |
           cd backend
+          npm ci
+
+      - name: Install Dependencies (Frontend)
+        run: |
+          cd frontend
           npm ci
 
       - name: Generate Prisma Client
@@ -41,18 +45,59 @@ jobs:
           cd backend
           npx tsc --noEmit
 
-      - name: Lint Code
+      - name: TypeScript Check (Frontend)
+        run: |
+          cd frontend
+          npx tsc --noEmit
+
+      - name: Lint Code (Backend)
         run: |
           cd backend
           npm run lint
 
-      - name: Run Unit Tests
+      - name: Run Unit Tests (Backend)
         run: |
           cd backend
           npm run test
 
+      - name: Run Unit Tests (Frontend)
+        run: |
+          cd frontend
+          npm test
+
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: coverage-report
           path: backend/coverage
+
+  e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install Dependencies (Frontend)
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Install Playwright Browsers
+        run: |
+          cd frontend
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E Tests
+        run: |
+          cd frontend
+          npx playwright test --project=chromium
+        env:
+          BASE_URL: 'https://ebidding-final.vercel.app'
