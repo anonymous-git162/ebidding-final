@@ -19,6 +19,7 @@ export default function EvaluationPage() {
   const [consolidation, setConsolidation] = useState<any>(null);
   const [tab, setTab] = useState(0);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [recommendation, setRecommendation] = useState('');
   const [leadComment, setLeadComment] = useState('');
@@ -77,6 +78,8 @@ export default function EvaluationPage() {
       });
       const res = await api.get(`/evaluation/reviews/${selected}`);
       setReviews(res.data || []);
+      setSuccess('Score submitted successfully!');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) { setError(err.response?.data?.message || 'Failed'); }
   };
 
@@ -195,6 +198,7 @@ export default function EvaluationPage() {
     <Box>
       <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>Evaluation Queue</Typography>
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
       <Card elevation={0} sx={{ mb: 3, border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
@@ -267,8 +271,9 @@ export default function EvaluationPage() {
                               const s = scores[sub.vendorId] || { score: 50, comment: '', criterionScores: criteria.map((_, i) => ({ criteriaIndex: i, score: 50 })) };
                               if (!s.criterionScores && criteria.length) s.criterionScores = criteria.map((_, i) => ({ criteriaIndex: i, score: 50 }));
                               const weighted = s.criterionScores ? computeWeightedScore(s.criterionScores) : s.score;
+                              const isScored = reviews.some((r: any) => r.vendorId === sub.vendorId);
                               return (
-                                <TableRow key={sub.id}>
+                                <TableRow key={sub.id} sx={isScored ? { bgcolor: 'success.50' } : {}}>
                                   <TableCell>{sub.vendor?.companyName || 'Unknown'}</TableCell>
                                   <TableCell>${Number(sub.lastBid ?? sub.price).toLocaleString()}</TableCell>
                                   <TableCell>
@@ -305,7 +310,7 @@ export default function EvaluationPage() {
                                     <Chip label={weighted} size="small" color={weighted >= 80 ? 'success' : weighted >= 60 ? 'warning' : 'error'} />
                                   </TableCell>
                                   <TableCell>
-                                    <TextField size="small" placeholder="Add comment..."
+                                    <TextField size="small" multiline rows={2} placeholder="Add comment..."
                                       value={s.comment || ''}
                                       onChange={(e) => setScores({ ...scores, [sub.vendorId]: { ...s, comment: e.target.value } })} />
                                   </TableCell>
