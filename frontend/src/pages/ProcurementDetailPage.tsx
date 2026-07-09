@@ -174,9 +174,12 @@ export default function ProcurementDetailPage() {
           {role === 'PROCUREMENT' && status === 'VENDOR_RESPONSE_IN_PROGRESS' && (
             <Button variant="contained" color="warning" startIcon={<Icon name="Gavel" />} onClick={() => handleAction('startEbidding')}>Start E-Bidding</Button>
           )}
-          {role === 'PROCUREMENT' && status === 'EBIDDING_PREP' && (
-            <Button variant="contained" color="warning" startIcon={<Icon name="Gavel" />} onClick={() => handleAction('completeEbidding')}>Complete E-Bidding</Button>
-          )}
+           {role === 'PROCUREMENT' && status === 'EBIDDING_PREP' && (
+             <Button variant="contained" color="warning" startIcon={<Icon name="Gavel" />} onClick={() => handleAction('completeEbidding')}>Complete E-Bidding</Button>
+           )}
+           {role === 'PROCUREMENT' && status === 'EBIDDING_OPEN' && (
+             <Button variant="contained" color="warning" startIcon={<Icon name="Gavel" />} onClick={() => handleAction('completeEbidding')}>Close E-Bidding</Button>
+           )}
           {role === 'PROCUREMENT' && status === 'EBIDDING_CLOSED' && (
             <Button variant="contained" color="info" startIcon={<Icon name="CheckCircle" />} onClick={() => handleAction('completeEvaluation')}>Complete Evaluation</Button>
           )}

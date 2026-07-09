@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
 
-const SOCKET_URL = import.meta.env.VITE_WS_URL || window.location.origin;
+const SOCKET_URL = import.meta.env.VITE_WS_URL || 'https://ebidding-final-backend.onrender.com';
 
 export function useSocket() {
   const { user } = useAuth();
