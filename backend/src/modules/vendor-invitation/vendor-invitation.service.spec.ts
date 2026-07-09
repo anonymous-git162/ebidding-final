@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { VendorInvitationService } from './vendor-invitation.service';
 import { PrismaService } from '../../database/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { mockPrisma, MockPrisma } from '../../../test/prisma-mock';
 
 describe('VendorInvitationService', () => {
@@ -15,6 +16,10 @@ describe('VendorInvitationService', () => {
       providers: [
         VendorInvitationService,
         { provide: PrismaService, useValue: prisma },
+        {
+          provide: NotificationsService,
+          useValue: { create: jest.fn(), createForUsers: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -28,6 +33,10 @@ describe('VendorInvitationService', () => {
         .mockResolvedValueOnce({ id: 'inv-1', vendorId: 'v-1' } as any)
         .mockResolvedValueOnce({ id: 'inv-2', vendorId: 'v-2' } as any);
       prisma.procurementTimeline.create.mockResolvedValue({} as any);
+      prisma.vendor.findMany.mockResolvedValue([
+        { userId: 'vendor-u-1' },
+        { userId: 'vendor-u-2' },
+      ] as any);
 
       const result = await service.invite('p-1', ['v-1', 'v-2'], 'u-1');
       expect(result).toHaveLength(2);
@@ -40,6 +49,7 @@ describe('VendorInvitationService', () => {
         vendorId: 'v-1',
       } as any);
       prisma.procurementTimeline.create.mockResolvedValue({} as any);
+      prisma.vendor.findMany.mockResolvedValue([{ userId: 'vendor-u-1' }] as any);
 
       const result = await service.invite('p-1', ['v-1'], 'u-1');
       expect(result).toHaveLength(1);

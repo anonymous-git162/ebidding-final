@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { EbiddingService } from './ebidding.service';
 import { PrismaService } from '../../database/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { mockPrisma, MockPrisma } from '../../../test/prisma-mock';
 
 describe('EbiddingService', () => {
@@ -34,6 +35,10 @@ describe('EbiddingService', () => {
       providers: [
         EbiddingService,
         { provide: PrismaService, useValue: prisma },
+        {
+          provide: NotificationsService,
+          useValue: { create: jest.fn(), createForUsers: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -42,6 +47,7 @@ describe('EbiddingService', () => {
 
   describe('createRound', () => {
     it('should create a new round when enough vendors have accepted', async () => {
+      prisma.procurement.findUnique.mockResolvedValue({ status: 'NEGOTIATION' });
       prisma.ebiddingRound.findFirst.mockResolvedValue(null);
       prisma.ebiddingRound.updateMany.mockResolvedValue({ count: 0 });
       prisma.ebiddingRound.create.mockResolvedValue(mockRound);
@@ -60,6 +66,7 @@ describe('EbiddingService', () => {
     });
 
     it('should reject creation when fewer than 2 vendors accepted', async () => {
+      prisma.procurement.findUnique.mockResolvedValue({ status: 'NEGOTIATION' });
       prisma.vendorInvitation.count.mockResolvedValue(1);
 
       await expect(service.createRound('proc-1', 'user-1')).rejects.toThrow(
@@ -67,7 +74,15 @@ describe('EbiddingService', () => {
       );
     });
 
+    it('should reject creation when procurement is in evaluation or later', async () => {
+      prisma.procurement.findUnique.mockResolvedValue({ status: 'EVALUATION' });
+      await expect(service.createRound('proc-1', 'user-1')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
     it('should increment round number for subsequent rounds', async () => {
+      prisma.procurement.findUnique.mockResolvedValue({ status: 'NEGOTIATION' });
       prisma.ebiddingRound.findFirst.mockResolvedValue({
         ...mockRound,
         roundNo: 2,

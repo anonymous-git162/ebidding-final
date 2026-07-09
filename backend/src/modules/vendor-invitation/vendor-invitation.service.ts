@@ -4,10 +4,14 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class VendorInvitationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async invite(
     procurementId: string,
@@ -17,7 +21,7 @@ export class VendorInvitationService {
   ) {
     const procurement = await this.prisma.procurement.findUnique({
       where: { id: procurementId },
-      select: { id: true },
+      select: { id: true, title: true, requestNo: true, requestType: true },
     });
     if (!procurement) throw new NotFoundException('Procurement not found');
 
@@ -43,6 +47,22 @@ export class VendorInvitationService {
           actorId: userId,
           metadata: { vendorId: inv.vendorId },
         },
+      });
+    }
+
+    const vendors = await this.prisma.vendor.findMany({
+      where: { id: { in: vendorIds } },
+      select: { userId: true },
+    });
+    const vendorUserIds = vendors.map(v => v.userId).filter(uid => uid !== userId);
+    if (vendorUserIds.length > 0) {
+      await this.notificationsService.createForUsers(vendorUserIds, {
+        title: 'New Invitation',
+        message: `You have been invited to "${procurement.title || procurement.requestNo || procurementId}".`,
+        type: 'info',
+        entityType: 'Procurement',
+        entityId: procurementId,
+        link: '/vendor/invitations',
       });
     }
 

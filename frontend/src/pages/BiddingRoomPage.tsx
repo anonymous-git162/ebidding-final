@@ -176,7 +176,7 @@ export default function BiddingRoomPage() {
               <option value="">Select...</option>
               {procurements.map((p) => <option key={p.id} value={p.id}>{p.requestNo} - {p.title}</option>)}
             </TextField>
-            {user?.role === 'PROCUREMENT' && procurementId && (
+            {user?.role === 'PROCUREMENT' && procurementId && !['EVALUATION','PENDING_APPROVAL','RETURNED_FROM_APPROVAL','AWARD_APPROVED','AWARD_ANNOUNCED','COMPLETED','REJECTED','CANCELLED'].includes(procurements.find(p => p.id === procurementId)?.status || '') && (
               <Button variant="contained" startIcon={<Icon name="Add" />} onClick={() => setDialogOpen(true)}>Create Round</Button>
             )}
           </Box>

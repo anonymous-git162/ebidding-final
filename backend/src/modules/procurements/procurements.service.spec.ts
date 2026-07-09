@@ -349,6 +349,7 @@ describe('ProcurementsService', () => {
         status: 'RFP_PUBLISHED',
         currentOwnerRole: 'VENDOR',
       });
+      prisma.vendorInvitation.findMany.mockResolvedValue([]);
 
       const result = await service.publish(
         'proc-1',
@@ -370,6 +371,7 @@ describe('ProcurementsService', () => {
         requestType: 'RFI',
         currentOwnerRole: 'VENDOR',
       });
+      prisma.vendorInvitation.findMany.mockResolvedValue([]);
 
       const result = await service.publish('proc-1', 'user-1');
       expect(result).toHaveProperty('status', 'RFI_PUBLISHED');
@@ -387,6 +389,7 @@ describe('ProcurementsService', () => {
         requestType: 'RFQ',
         currentOwnerRole: 'VENDOR',
       });
+      prisma.vendorInvitation.findMany.mockResolvedValue([]);
 
       const result = await service.publish('proc-1', 'user-1');
       expect(result).toHaveProperty('status', 'RFQ_OPEN');

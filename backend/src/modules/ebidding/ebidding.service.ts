@@ -34,6 +34,15 @@ export class EbiddingService {
   }
 
   async createRound(procurementId: string, createdBy: string) {
+    const procurement = await this.prisma.procurement.findUnique({
+      where: { id: procurementId },
+      select: { status: true },
+    });
+    if (!procurement) throw new NotFoundException('Procurement not found');
+    if (['EVALUATION','PENDING_APPROVAL','RETURNED_FROM_APPROVAL','AWARD_APPROVED','AWARD_ANNOUNCED','COMPLETED','REJECTED','CANCELLED'].includes(procurement.status)) {
+      throw new BadRequestException('Cannot create rounds after evaluation has started');
+    }
+
     await this.checkMinVendors(procurementId);
 
     const lastRound = await this.prisma.ebiddingRound.findFirst({
