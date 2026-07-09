@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { validateMagicBytes } from '../../common/helpers/magic-bytes';
+import { v2 as cloudinary } from 'cloudinary';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -22,7 +23,18 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 @Injectable()
 export class FilesService {
-  constructor(private prisma: PrismaService) {}
+  private cloudinaryEnabled = false;
+
+  constructor(private prisma: PrismaService) {
+    if (process.env.CLOUDINARY_CLOUD_NAME) {
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+      this.cloudinaryEnabled = true;
+    }
+  }
 
   async upload(file: Express.Multer.File, uploadedBy: string) {
     if (!file) throw new BadRequestException('No file provided');
@@ -40,24 +52,34 @@ export class FilesService {
       throw new BadRequestException('File size exceeds 10MB limit');
     }
 
-    const uploadDir = path.join(process.cwd(), 'uploads');
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
     let decodedName = path.basename(file.originalname);
     try {
       decodedName = decodeURIComponent(path.basename(file.originalname));
     } catch { /* empty */ }
-    const safeName = decodedName.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const fileName = `${Date.now()}-${safeName}`;
-    const filePath = path.join(uploadDir, fileName);
-    fs.writeFileSync(filePath, file.buffer);
+
+    let storagePath: string;
+    if (this.cloudinaryEnabled) {
+      const safeName = decodedName.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const result = await cloudinary.uploader.upload(
+        `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+        { public_id: `${Date.now()}-${safeName}` },
+      );
+      storagePath = result.secure_url;
+    } else {
+      const uploadDir = path.join(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+      const safeName = decodedName.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const fileName = `${Date.now()}-${safeName}`;
+      storagePath = path.join(uploadDir, fileName);
+      fs.writeFileSync(storagePath, file.buffer);
+    }
 
     return this.prisma.file.create({
       data: {
         fileName: decodedName,
         mimeType: file.mimetype,
         fileSize: file.size,
-        storagePath: filePath,
+        storagePath,
         uploadedBy,
       },
     });
@@ -88,7 +110,18 @@ export class FilesService {
     const file = await this.prisma.file.findUnique({ where: { id } });
     if (!file) return null;
     if (userId && file.uploadedBy !== userId) return null;
-    if (fs.existsSync(file.storagePath)) fs.unlinkSync(file.storagePath);
+
+    if (file.storagePath.startsWith('http')) {
+      if (this.cloudinaryEnabled) {
+        const urlWithoutQuery = file.storagePath.split('?')[0];
+        const parts = urlWithoutQuery.split('/');
+        const publicId = parts[parts.length - 1].replace(/\.[^.]+$/, '');
+        await cloudinary.uploader.destroy(publicId).catch(() => {});
+      }
+    } else {
+      if (fs.existsSync(file.storagePath)) fs.unlinkSync(file.storagePath);
+    }
+
     await this.prisma.file.delete({ where: { id } });
     return file;
   }

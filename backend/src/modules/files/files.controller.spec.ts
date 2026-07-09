@@ -67,7 +67,7 @@ describe('FilesController', () => {
     };
 
     await controller.download('f-1', mockReq, res);
-    expect(service.getFile).toHaveBeenCalledWith('f-1', mockReq.user.id);
+    expect(service.getFile).toHaveBeenCalledWith('f-1', mockReq.user.id, mockReq.user.role);
   });
 
   it('should delete a file', async () => {

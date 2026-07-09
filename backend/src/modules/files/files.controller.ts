@@ -52,6 +52,10 @@ export class FilesController {
     const file = await this.filesService.getFile(id, req.user.id, req.user.role);
     if (!file) return res.status(404).json({ message: 'File not found' });
 
+    if (file.storagePath.startsWith('http')) {
+      return res.redirect(file.storagePath);
+    }
+
     if (fs.existsSync(file.storagePath)) {
       const isText =
         file.mimeType.startsWith('text/') ||
