@@ -512,13 +512,12 @@ export default function ProcurementDetailPage() {
                           <TextField
                             select
                             size="small"
-                            SelectProps={{ multiple: true }}
+                            SelectProps={{ multiple: true, renderValue: (selected: any) => selected.map((id: string) => evaluators.find((e: any) => e.id === id)?.fullName || id).join(', ') }}
                             value={selectedEvaluators}
                             onChange={(e) => setSelectedEvaluators(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value as string[])}
                             sx={{ minWidth: 300 }}
                             onFocus={loadEvaluators}
                             label="Select evaluators"
-                            slotProps={{ select: { renderValue: (selected: any) => selected.map((id: string) => evaluators.find((e: any) => e.id === id)?.fullName || id).join(', ') } }}
                           >
                             {evaluators.map((ev: any) => (
                               <MenuItem key={ev.id} value={ev.id}>
