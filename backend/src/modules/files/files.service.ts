@@ -63,10 +63,10 @@ export class FilesService {
     });
   }
 
-  async getFile(id: string, userId?: string) {
+  async getFile(id: string, userId?: string, userRole?: string) {
     const file = await this.prisma.file.findUnique({ where: { id } });
     if (!file) return null;
-    if (userId && file.uploadedBy !== userId) return null;
+    if (userId && file.uploadedBy !== userId && userRole !== 'PROCUREMENT' && userRole !== 'ADMIN') return null;
     return file;
   }
 

@@ -49,7 +49,7 @@ export class FilesController {
     @Request() req: any,
     @Res() res: any,
   ) {
-    const file = await this.filesService.getFile(id, req.user.id);
+    const file = await this.filesService.getFile(id, req.user.id, req.user.role);
     if (!file) return res.status(404).json({ message: 'File not found' });
 
     if (fs.existsSync(file.storagePath)) {
