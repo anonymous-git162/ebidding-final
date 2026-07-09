@@ -11,6 +11,7 @@ import { Prisma, ProcurementStatus, UserRole, SubmissionStatus } from '@prisma/c
 import { WORKFLOW_TRANSITIONS } from '../../common/enums';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ApprovalService } from '../approval/approval.service';
+import { EvaluationService } from '../evaluation/evaluation.service';
 import * as crypto from 'crypto';
 import {
   CreateProcurementDto,
@@ -26,6 +27,7 @@ export class ProcurementsService {
     private notificationsService: NotificationsService,
     @Inject(forwardRef(() => ApprovalService))
     private approvalService: ApprovalService,
+    private evaluationService: EvaluationService,
   ) {}
 
   private generateRequestNo(type: string): string {
@@ -522,13 +524,37 @@ export class ProcurementsService {
   }
 
   async completeEbidding(id: string, userId: string) {
-    return this.transition(
+    const result = await this.transition(
       id,
       'EVALUATION',
       'PROCUREMENT',
       userId,
       'PROCUREMENT',
     );
+
+    const procurement = await this.prisma.procurement.findUnique({
+      where: { id },
+      select: { propertyId: true },
+    });
+
+    if (procurement?.propertyId) {
+      const evaluators = await this.prisma.user.findMany({
+        where: {
+          propertyId: procurement.propertyId,
+          role: { in: ['EVALUATOR', 'LEAD_EVALUATOR'] },
+          isActive: true,
+        },
+        select: { id: true, role: true },
+      });
+
+      if (evaluators.length > 0) {
+        const evaluatorIds = evaluators.map(e => e.id);
+        const leadId = evaluators.find(e => e.role === 'LEAD_EVALUATOR')?.id || evaluators[0].id;
+        await this.evaluationService.assignEvaluators(id, evaluatorIds, leadId);
+      }
+    }
+
+    return result;
   }
 
   async completeEvaluation(id: string, userId: string) {

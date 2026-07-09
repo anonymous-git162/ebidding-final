@@ -4,6 +4,7 @@ import { ProcurementsService } from './procurements.service';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ApprovalService } from '../approval/approval.service';
+import { EvaluationService } from '../evaluation/evaluation.service';
 import { mockPrisma, MockPrisma } from '../../../test/prisma-mock';
 
 describe('ProcurementsService', () => {
@@ -49,6 +50,10 @@ describe('ProcurementsService', () => {
     routeToApprover: jest.fn(),
   };
 
+  const mockEvaluationService = {
+    assignEvaluators: jest.fn(),
+  };
+
   beforeEach(async () => {
     prisma = mockPrisma();
     jest.clearAllMocks();
@@ -59,6 +64,7 @@ describe('ProcurementsService', () => {
         { provide: PrismaService, useValue: prisma },
         { provide: NotificationsService, useValue: mockNotificationsService },
         { provide: ApprovalService, useValue: mockApprovalService },
+        { provide: EvaluationService, useValue: mockEvaluationService },
       ],
     }).compile();
 
@@ -482,6 +488,7 @@ describe('ProcurementsService', () => {
         ...mockProcurement,
         status: 'EVALUATION',
       });
+      prisma.user.findMany.mockResolvedValue([]);
 
       const result = await service.completeEbidding('proc-1', 'user-1');
       expect(result).toHaveProperty('status', 'EVALUATION');
