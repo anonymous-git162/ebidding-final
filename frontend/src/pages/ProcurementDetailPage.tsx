@@ -372,7 +372,7 @@ export default function ProcurementDetailPage() {
                   )}
                   <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
                     <Button size="small" variant="outlined" startIcon={<Icon name="Description" />} href={`/api/pdf/tor/${id}`} target="_blank">Export TOR (PDF)</Button>
-                    {(status === 'EVALUATION' || status === 'PENDING_APPROVAL' || status === 'AWARD_APPROVED' || status === 'AWARD_ANNOUNCED' || status === 'COMPLETED') && (
+                    {role !== 'VENDOR' && (status === 'EVALUATION' || status === 'PENDING_APPROVAL' || status === 'AWARD_APPROVED' || status === 'AWARD_ANNOUNCED' || status === 'COMPLETED') && (
                       <Button size="small" variant="outlined" startIcon={<Icon name="Assessment" />} href={`/api/pdf/evaluation/${id}`} target="_blank">Export Evaluation (PDF)</Button>
                     )}
                     {(status === 'AWARD_ANNOUNCED' || status === 'COMPLETED') && (
