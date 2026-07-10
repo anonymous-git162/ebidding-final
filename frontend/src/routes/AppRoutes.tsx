@@ -24,7 +24,7 @@ import VendorAnalyticsPage from '../pages/VendorAnalyticsPage';
 import ChangePasswordPage from '../pages/ChangePasswordPage';
 
 const ROLE_ROUTES: Record<string, string[]> = {
-  // eBidding Platform - role-based route access
+  // eBidding Platform - role-based route access control
   ADMIN: ['*'],
   APPROVER: ['dashboard', 'procurements', 'approvals', 'audit', 'reporting'],
   LEAD_EVALUATOR: ['dashboard', 'procurements', 'evaluation', 'results'],
