@@ -132,7 +132,7 @@ export default function ProcurementDetailPage() {
       else if (action === 'startEbidding') await api.post(`/procurements/${id}/ebidding/start`);
       else if (action === 'completeEbidding') await api.post(`/procurements/${id}/ebidding/complete`);
       else if (action === 'completeEvaluation') await api.post(`/procurements/${id}/evaluation/complete`);
-      else if (action === 'announceAward') {
+      else if (action === 'announce') {
         const winningVendorId = (dialog as any)?.winningVendorId;
         const announcementText = (dialog as any)?.announcementText || '';
         if (!winningVendorId) throw new Error('Please select a winning vendor');
