@@ -132,7 +132,12 @@ export default function ProcurementDetailPage() {
       else if (action === 'startEbidding') await api.post(`/procurements/${id}/ebidding/start`);
       else if (action === 'completeEbidding') await api.post(`/procurements/${id}/ebidding/complete`);
       else if (action === 'completeEvaluation') await api.post(`/procurements/${id}/evaluation/complete`);
-      else if (action === 'announceAward') await api.post(`/procurements/${id}/award/announce`);
+      else if (action === 'announceAward') {
+        const winningVendorId = (dialog as any)?.winningVendorId;
+        const announcementText = (dialog as any)?.announcementText || '';
+        if (!winningVendorId) throw new Error('Please select a winning vendor');
+        await api.post(`/procurements/${id}/award/announce`, { winningVendorId, announcementText });
+      }
       else if (action === 'sendContract') await api.post(`/procurements/${id}/contract/send`);
       else if (action === 'completeProcurement') await api.post(`/procurements/${id}/award/complete`);
       else if (action === 'startRfiCollection') await api.post(`/procurements/${id}/rfi/start-collection`);
@@ -256,7 +261,7 @@ export default function ProcurementDetailPage() {
             <Button variant="outlined" color="info" startIcon={<Icon name="Person" />} onClick={() => setDialog({ type: 'reassign', title: 'Reassign Approver' })}>Reassign Approver</Button>
           )}
           {role === 'PROCUREMENT' && status === 'AWARD_APPROVED' && (
-            <Button variant="contained" color="success" startIcon={<Icon name="Publish" />} onClick={() => handleAction('announceAward')}>Announce Award</Button>
+            <Button variant="contained" color="success" startIcon={<Icon name="Publish" />} onClick={() => setDialog({ type: 'announce', title: 'Announce Award' })}>Announce Award</Button>
           )}
           {role === 'PROCUREMENT' && status === 'AWARD_ANNOUNCED' && (
             <Button variant="contained" color="warning" startIcon={<Icon name="Description" />} onClick={() => handleAction('sendContract')}>Send Contract</Button>
@@ -717,6 +722,23 @@ export default function ProcurementDetailPage() {
                 ))}
               </TextField>
             </Box>
+          ) : dialog?.type === 'announce' ? (
+            <Box>
+              <Alert severity="info" sx={{ mb: 2, borderRadius: 1 }}>Select the winning vendor and add an announcement message.</Alert>
+              <TextField
+                select fullWidth size="small" label="Winning Vendor"
+                value={(dialog as any).winningVendorId || ''}
+                onChange={(e) => setDialog(prev => prev ? { ...prev, winningVendorId: e.target.value } as any : null)}
+                sx={{ mb: 2 }}
+                SelectProps={{ native: true }}
+              >
+                <option value="">Select winner...</option>
+                {(procurement.submissions || []).map((sub: any) => (
+                  <option key={sub.vendorId} value={sub.vendorId}>{sub.vendor?.companyName || 'Unknown'} — ${Number(sub.lastBid ?? sub.price).toLocaleString()}</option>
+                ))}
+              </TextField>
+              <TextField fullWidth multiline rows={3} label="Announcement Text" value={(dialog as any).announcementText || ''} onChange={(e) => setDialog(prev => prev ? { ...prev, announcementText: e.target.value } as any : null)} placeholder="Add announcement details..." />
+            </Box>
           ) : dialog?.type === 'approve' ? (
             <TextField fullWidth multiline rows={3} label="Comment (optional)" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Add any notes about this approval..." />
           ) : (
@@ -731,11 +753,11 @@ export default function ProcurementDetailPage() {
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setDialog(null)} disabled={actionLoading}>Cancel</Button>
           <Button
-            variant="contained" onClick={() => handleAction(dialog!.type)} disabled={actionLoading || (dialog?.type === 'publish' && (!deadline || new Date(deadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))) || (dialog?.type !== 'approve' && dialog?.type !== 'publish' && dialog?.type !== 'reassign' && !comment) || (dialog?.type === 'reassign' && !(dialog as any)?.approverId)}
+            variant="contained" onClick={() => handleAction(dialog!.type)} disabled={actionLoading || (dialog?.type === 'publish' && (!deadline || new Date(deadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))) || (dialog?.type !== 'approve' && dialog?.type !== 'publish' && dialog?.type !== 'reassign' && dialog?.type !== 'announce' && !comment) || (dialog?.type === 'reassign' && !(dialog as any)?.approverId) || (dialog?.type === 'announce' && !(dialog as any)?.winningVendorId)}
             color={dialog?.type === 'reject' ? 'error' : dialog?.type === 'approve' ? 'success' : 'primary'}
             startIcon={actionLoading ? <CircularProgress size={16} color="inherit" /> : null}
           >
-            {actionLoading ? 'Processing...' : dialog?.type === 'approve' ? 'Approve' : dialog?.type === 'reject' ? 'Reject' : dialog?.type === 'publish' ? 'Publish' : 'Confirm'}
+            {actionLoading ? 'Processing...' : dialog?.type === 'approve' ? 'Approve' : dialog?.type === 'reject' ? 'Reject' : dialog?.type === 'publish' ? 'Publish' : dialog?.type === 'announce' ? 'Announce' : 'Confirm'}
           </Button>
         </DialogActions>
       </Dialog>
