@@ -73,6 +73,16 @@ export class ProcurementsController {
     return this.procurementsService.update(id, dto, req.user.id);
   }
 
+  @Patch(':id/approver')
+  @Roles(UserRole.PROCUREMENT, UserRole.ADMIN)
+  @ApiOperation({ summary: 'Reassign approver for procurement' })
+  reassignApprover(
+    @Param('id') id: string,
+    @Body() body: { approverId: string },
+  ) {
+    return this.procurementsService.reassignApprover(id, body.approverId);
+  }
+
   @Post(':id/submit')
   @Roles(UserRole.REQUESTER, UserRole.PROCUREMENT, UserRole.ADMIN)
   @ApiOperation({ summary: 'Submit procurement for review' })

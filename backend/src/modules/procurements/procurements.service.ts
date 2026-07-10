@@ -327,6 +327,33 @@ export class ProcurementsService {
     );
   }
 
+  async reassignApprover(id: string, approverId: string) {
+    const procurement = await this.prisma.procurement.findUnique({ where: { id } });
+    if (!procurement) throw new NotFoundException('Procurement not found');
+    if (procurement.status !== 'PENDING_APPROVAL' && procurement.status !== 'RETURNED_FROM_APPROVAL') {
+      throw new BadRequestException('Can only reassign approver at PENDING_APPROVAL or RETURNED_FROM_APPROVAL');
+    }
+    const approver = await this.prisma.user.findUnique({ where: { id: approverId }, select: { id: true, fullName: true } });
+    if (!approver) throw new NotFoundException('Approver not found');
+
+    const updated = await this.prisma.procurement.update({
+      where: { id },
+      data: { assignedApproverId: approverId },
+      select: { id: true, requestNo: true },
+    });
+
+    await this.notificationsService.createForUsers([approverId], {
+      title: 'Approval Assigned',
+      message: `You have been assigned to approve ${updated.requestNo}`,
+      type: 'info',
+      entityType: 'Procurement',
+      entityId: id,
+      link: `/procurements/${id}`,
+    });
+
+    return { ...updated, assignedApprover: approver };
+  }
+
   async rejectReview(id: string, userId: string, reason?: string) {
     return this.transition(
       id,

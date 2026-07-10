@@ -140,6 +140,11 @@ export default function ProcurementDetailPage() {
       else if (action === 'draftRfp') await api.post(`/procurements/${id}/rfp/draft`);
       else if (action === 'publishRfp') await api.post(`/procurements/${id}/rfp/publish`, { submissionDeadline: deadline || undefined });
       else if (action === 'cancel') await api.post(`/procurements/${id}/cancel`, { reason: comment });
+      else if (action === 'reassign') {
+        const approverId = (dialog as any)?.approverId;
+        if (!approverId) throw new Error('Please select an approver');
+        await api.patch(`/procurements/${id}/approver`, { approverId });
+      }
       setDialog(null);
       setComment('');
       setDeadline('');
@@ -246,6 +251,9 @@ export default function ProcurementDetailPage() {
               <Button variant="outlined" color="warning" startIcon={<Icon name="Undo" />} onClick={() => setDialog({ type: 'return', title: 'Return for Revision' })}>Return</Button>
               <Button variant="outlined" color="error" startIcon={<Icon name="Cancel" />} onClick={() => setDialog({ type: 'reject', title: 'Reject' })}>Reject</Button>
             </>
+          )}
+          {role === 'PROCUREMENT' && (status === 'PENDING_APPROVAL' || status === 'RETURNED_FROM_APPROVAL') && (
+            <Button variant="outlined" color="info" startIcon={<Icon name="Person" />} onClick={() => setDialog({ type: 'reassign', title: 'Reassign Approver' })}>Reassign Approver</Button>
           )}
           {role === 'PROCUREMENT' && status === 'AWARD_APPROVED' && (
             <Button variant="contained" color="success" startIcon={<Icon name="Publish" />} onClick={() => handleAction('announceAward')}>Announce Award</Button>
@@ -686,6 +694,29 @@ export default function ProcurementDetailPage() {
               <Alert severity="warning" sx={{ mb: 1, borderRadius: 1 }}>Deadline must be at least 7 days from today.</Alert>
               <TextField fullWidth label="Submission Deadline" type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} InputLabelProps={{ shrink: true }} required error={deadline !== '' && new Date(deadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} helperText={deadline !== '' && new Date(deadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) ? 'Deadline must be at least 7 days from today' : ''} />
             </Box>
+          ) : dialog?.type === 'reassign' ? (
+            <Box>
+              <Alert severity="info" sx={{ mb: 2, borderRadius: 1 }}>Select a new approver for this procurement.</Alert>
+              {procurement.assignedApproverId && (
+                <Typography variant="body2" sx={{ mb: 1 }}>Current approver: <strong>{(procurement as any).approver?.fullName || 'Unknown'}</strong></Typography>
+              )}
+              <TextField
+                select fullWidth size="small" label="New Approver"
+                value={(dialog as any).approverId || ''}
+                onChange={(e) => setDialog(prev => prev ? { ...prev, approverId: e.target.value } as any : null)}
+                onFocus={async () => {
+                  if (!(dialog as any).approverList) {
+                    try { const res = await api.get('/users', { params: { role: 'APPROVER', limit: 100 } }); setDialog(prev => prev ? { ...prev, approverList: res.data?.data || res.data || [] } as any : null); } catch {}
+                  }
+                }}
+                SelectProps={{ native: true }}
+              >
+                <option value="">Select approver...</option>
+                {((dialog as any).approverList || []).map((a: any) => (
+                  <option key={a.id} value={a.id}>{a.fullName} ({a.email})</option>
+                ))}
+              </TextField>
+            </Box>
           ) : dialog?.type === 'approve' ? (
             <TextField fullWidth multiline rows={3} label="Comment (optional)" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Add any notes about this approval..." />
           ) : (
@@ -700,7 +731,7 @@ export default function ProcurementDetailPage() {
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setDialog(null)} disabled={actionLoading}>Cancel</Button>
           <Button
-            variant="contained" onClick={() => handleAction(dialog!.type)} disabled={actionLoading || (dialog?.type === 'publish' && (!deadline || new Date(deadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))) || (dialog?.type !== 'approve' && dialog?.type !== 'publish' && !comment)}
+            variant="contained" onClick={() => handleAction(dialog!.type)} disabled={actionLoading || (dialog?.type === 'publish' && (!deadline || new Date(deadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))) || (dialog?.type !== 'approve' && dialog?.type !== 'publish' && dialog?.type !== 'reassign' && !comment) || (dialog?.type === 'reassign' && !(dialog as any)?.approverId)}
             color={dialog?.type === 'reject' ? 'error' : dialog?.type === 'approve' ? 'success' : 'primary'}
             startIcon={actionLoading ? <CircularProgress size={16} color="inherit" /> : null}
           >
