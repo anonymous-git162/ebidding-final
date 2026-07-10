@@ -279,6 +279,7 @@ export default function ProcurementDetailPage() {
         </Box>
       </Box>
 
+      {role !== 'VENDOR' && (
       <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', mb: 3, overflow: 'hidden' }}>
         <Box sx={{ px: 3, py: 1.5, bgcolor: 'action.hover', borderBottom: '1px solid', borderColor: 'divider' }}>
           <Typography variant="subtitle2" fontWeight={600} color="text.secondary">Workflow Progress</Typography>
@@ -319,6 +320,7 @@ export default function ProcurementDetailPage() {
           )}
         </CardContent>
       </Card>
+      )}
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
@@ -326,9 +328,9 @@ export default function ProcurementDetailPage() {
             <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
               <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ px: 2, '& .MuiTab-root': { textTransform: 'none', fontWeight: 500 } }}>
                 <Tab label="Overview" />
-                <Tab label="Vendors" />
+                {role !== 'VENDOR' && <Tab label="Vendors" />}
                 <Tab label="Submissions" />
-                <Tab label="Evaluation" />
+                {role !== 'VENDOR' && <Tab label="Evaluation" />}
               </Tabs>
             </Box>
 
@@ -444,7 +446,7 @@ export default function ProcurementDetailPage() {
                 </Box>
               )}
 
-              {tab === 2 && (
+              {(tab === 2 || (role === 'VENDOR' && tab === 1)) && (
                 <Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="subtitle2" fontWeight={600} color="text.secondary">Vendor Submissions</Typography>
@@ -477,7 +479,7 @@ export default function ProcurementDetailPage() {
                       <Table size="small">
                         <TableHead>
                            <TableRow>
-                             <TableCell>Vendor</TableCell>
+                             {role !== 'VENDOR' && <TableCell>Vendor</TableCell>}
                              <TableCell>Price</TableCell>
                              <TableCell>Files</TableCell>
                              <TableCell>Status</TableCell>
@@ -488,7 +490,7 @@ export default function ProcurementDetailPage() {
                         <TableBody>
                           {(procurement.submissions || []).map((sub: any) => (
                             <TableRow key={sub.id}>
-                              <TableCell>{sub.vendor?.companyName || '—'}</TableCell>
+                              {role !== 'VENDOR' && <TableCell>{sub.vendor?.companyName || '—'}</TableCell>}
                                <TableCell>${Number(sub.price).toLocaleString()}</TableCell>
                                <TableCell>
                                  {sub.files && sub.files.length > 0 ? (
