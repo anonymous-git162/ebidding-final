@@ -271,9 +271,9 @@ export default function EvaluationPage() {
                               const s = scores[sub.vendorId] || { score: 50, comment: '', criterionScores: criteria.map((_, i) => ({ criteriaIndex: i, score: 50 })) };
                               if (!s.criterionScores && criteria.length) s.criterionScores = criteria.map((_, i) => ({ criteriaIndex: i, score: 50 }));
                               const weighted = s.criterionScores ? computeWeightedScore(s.criterionScores) : s.score;
-                              const isScored = reviews.some((r: any) => r.vendorId === sub.vendorId);
+                              const isScored = reviews.some((r: any) => String(r.vendorId) === String(sub.vendorId));
                               return (
-                                <TableRow key={sub.id} sx={isScored ? { bgcolor: 'success.50' } : {}}>
+                                <TableRow key={sub.id} sx={isScored ? { bgcolor: '#e8f5e9' } : {}}>
                                   <TableCell>{sub.vendor?.companyName || 'Unknown'}</TableCell>
                                   <TableCell>${Number(sub.lastBid ?? sub.price).toLocaleString()}</TableCell>
                                   <TableCell>
@@ -310,7 +310,7 @@ export default function EvaluationPage() {
                                     <Chip label={weighted} size="small" color={weighted >= 80 ? 'success' : weighted >= 60 ? 'warning' : 'error'} />
                                   </TableCell>
                                   <TableCell>
-                                    <TextField size="small" multiline rows={2} placeholder="Add comment..."
+                                    <TextField size="small" multiline rows={3} placeholder="Add comment..."
                                       value={s.comment || ''}
                                       onChange={(e) => setScores({ ...scores, [sub.vendorId]: { ...s, comment: e.target.value } })} />
                                   </TableCell>
