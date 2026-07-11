@@ -43,6 +43,13 @@ test.describe('Vendor Flow', () => {
         body: JSON.stringify({ data: [{ id: 'sub-1', requestNo: 'REQ-001', title: 'Vendor Procurement', status: 'OPEN' }], meta: { total: 1 } }),
       });
     });
+    await page.route('**/api/vendor-invitations/my', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([{ id: 'inv-1', procurementId: 'sub-1', invitationStatus: 'ACCEPTED' }]),
+      });
+    });
 
     await page.getByText('Submissions').first().click();
     await expect(page).toHaveURL(/submissions/);

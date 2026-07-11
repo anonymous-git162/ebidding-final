@@ -153,14 +153,20 @@ test.describe('Full Procurement Lifecycle', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(500);
 
-    await page.evaluate(async (pid) => {
+    const reviewResult = await page.evaluate(async (pid) => {
       const h = { 'Content-Type': 'application/json', 'x-requested-by': 'ebidding-app' };
-      const subs = await (await fetch(`/api/rfq-submissions/procurement/${pid}`, { credentials: 'include', headers: h })).json();
+      await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include', headers: h }).catch(() => {});
+      const subRes = await fetch(`/api/rfq-submissions/procurement/${pid}`, { credentials: 'include', headers: h });
+      if (!subRes.ok) return { error: `submissions fetch failed: status ${subRes.status} ${await subRes.text()}` };
+      const subs = await subRes.json();
       const list = Array.isArray(subs) ? subs : [];
       for (const s of list) {
-        await fetch('/api/evaluation/review', { method: 'POST', credentials: 'include', headers: h, body: JSON.stringify({ procurementId: pid, vendorId: s.vendorId, score: 85, comment: 'Good proposal' }) });
+        const r = await fetch('/api/evaluation/reviews', { method: 'POST', credentials: 'include', headers: h, body: JSON.stringify({ procurementId: pid, vendorId: s.vendorId, score: 85, comment: 'Good proposal' }) });
+        if (!r.ok) return { error: `review POST failed: status ${r.status} ${await r.text()}` };
       }
+      return { success: true, reviewCount: list.length };
     }, procId);
+    expect(reviewResult.error).toBeUndefined();
 
     // 5c: Lead evaluator consolidates
     await login(page, 'lead@ebidding.com');
@@ -186,10 +192,12 @@ test.describe('Full Procurement Lifecycle', () => {
     await login(page, 'procurement@ebidding.com');
     const t2 = await page.evaluate(async (pid) => {
       const h = { 'Content-Type': 'application/json', 'x-requested-by': 'ebidding-app' };
+      await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include', headers: h }).catch(() => {});
       const r = await fetch(`/api/procurements/${pid}/evaluation/complete`, { method: 'POST', credentials: 'include', headers: h });
-      return r.ok;
+      if (!r.ok) return { ok: false, status: r.status, body: await r.text() };
+      return { ok: true };
     }, procId);
-    expect(t2).toBeTruthy();
+    expect(t2.ok).toBeTruthy();
 
     // ════════════════════════════════════════════════════════════════
     // Step 6: Approval → Award → Complete (API)
