@@ -25,45 +25,41 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
+      - name: Cache node_modules (Backend)
+        uses: actions/cache@v4
+        with:
+          path: backend/node_modules
+          key: backend-nm-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Cache node_modules (Frontend)
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: frontend-nm-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
       - name: Install Dependencies (Backend)
-        run: |
-          cd backend
-          npm ci
+        run: cd backend && npm ci
 
       - name: Install Dependencies (Frontend)
-        run: |
-          cd frontend
-          npm ci
+        run: cd frontend && npm ci
 
       - name: Generate Prisma Client
-        run: |
-          cd backend
-          npx prisma generate
+        run: cd backend && npx prisma generate
 
       - name: TypeScript Check (Backend)
-        run: |
-          cd backend
-          npx tsc --noEmit
+        run: cd backend && npx tsc --noEmit
 
       - name: TypeScript Check (Frontend)
-        run: |
-          cd frontend
-          npx tsc --noEmit
+        run: cd frontend && npx tsc --noEmit
 
       - name: Lint Code (Backend)
-        run: |
-          cd backend
-          npm run lint
+        run: cd backend && npm run lint
 
       - name: Run Unit Tests (Backend)
-        run: |
-          cd backend
-          npm run test
+        run: cd backend && npm run test -- --forceExit
 
       - name: Run Unit Tests (Frontend)
-        run: |
-          cd frontend
-          npm test
+        run: cd frontend && npm test
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
@@ -71,6 +67,52 @@ jobs:
         with:
           name: coverage-report
           path: backend/coverage
+
+  backend-e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ebidding_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Cache node_modules (Backend)
+        uses: actions/cache@v4
+        with:
+          path: backend/node_modules
+          key: backend-nm-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Install Dependencies (Backend)
+        run: cd backend && npm ci
+
+      - name: Generate Prisma Client
+        run: cd backend && npx prisma generate
+
+      - name: Run Backend E2E Tests
+        run: cd backend && npm run test:e2e -- --forceExit
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ebidding_test
+          JWT_SECRET: test-jwt-secret-ci
+          REFRESH_TOKEN_SECRET: test-refresh-secret-ci
 
   e2e:
     needs: build
@@ -85,19 +127,27 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
+      - name: Cache node_modules (Frontend)
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: frontend-nm-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
       - name: Install Dependencies (Frontend)
-        run: |
-          cd frontend
-          npm ci
+        run: cd frontend && npm ci
 
       - name: Install Playwright Browsers
-        run: |
-          cd frontend
-          npx playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: cd frontend && npx playwright install --with-deps chromium
 
       - name: Run E2E Tests
-        run: |
-          cd frontend
-          npx playwright test --project=chromium
+        run: cd frontend && npx playwright test --project=chromium
         env:
           BASE_URL: 'https://ebidding-final.vercel.app'
