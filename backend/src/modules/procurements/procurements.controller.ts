@@ -94,7 +94,7 @@ export class ProcurementsController {
   }
 
   @Patch(':id/status')
-  @Public()
+  @Roles(UserRole.PROCUREMENT, UserRole.ADMIN)
   @ApiOperation({ summary: 'Set procurement status (admin fix)' })
   async setStatus(
     @Param('id') id: string,
