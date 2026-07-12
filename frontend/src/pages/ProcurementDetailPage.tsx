@@ -534,12 +534,14 @@ export default function ProcurementDetailPage() {
                         <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>Assign Evaluators</Typography>
                         {procurement.evaluatorAssignments && procurement.evaluatorAssignments.length > 0 && (
                           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1.5 }}>
-                            {procurement.evaluatorAssignments.map((a: any) => (
+                            {procurement.evaluatorAssignments.map((a: any) => {
+                              const hasScored = (procurement.evaluations || []).some((e: any) => e.evaluatorId === a.evaluatorId && e.submittedAt);
+                              return (
                               <Chip
                                 key={a.id}
-                                label={`${a.evaluator?.fullName || 'Unknown'}${a.isLead ? ' (Lead)' : ''}`}
+                                label={`${a.evaluator?.fullName || 'Unknown'}${a.isLead ? ' (Lead)' : ''}${hasScored ? ' (Scored)' : ''}`}
                                 color={a.isLead ? 'primary' : 'default'}
-                                onDelete={async () => {
+                                onDelete={hasScored ? undefined : async () => {
                                   const remaining = procurement.evaluatorAssignments
                                     .filter((x: any) => x.evaluatorId !== a.evaluatorId)
                                     .map((x: any) => x.evaluatorId);
@@ -556,7 +558,8 @@ export default function ProcurementDetailPage() {
                                 }}
                                 size="small"
                               />
-                            ))}
+                              );
+                            })}
                           </Box>
                         )}
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
