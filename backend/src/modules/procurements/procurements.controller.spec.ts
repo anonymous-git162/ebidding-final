@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProcurementsController } from './procurements.controller';
 import { ProcurementsService } from './procurements.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PrismaService } from '../../database/prisma.service';
 
 describe('ProcurementsController', () => {
   let controller: ProcurementsController;
@@ -38,7 +39,10 @@ describe('ProcurementsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProcurementsController],
-      providers: [{ provide: ProcurementsService, useValue: service }],
+      providers: [
+        { provide: ProcurementsService, useValue: service },
+        { provide: PrismaService, useValue: { procurement: { update: jest.fn() } } },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: jest.fn(() => true) })

@@ -89,6 +89,11 @@ export class EbiddingService {
       data: { status: 'OPEN', startsAt: new Date() },
     });
 
+    await this.prisma.procurement.update({
+      where: { id: round.procurementId },
+      data: { status: 'EBIDDING_OPEN' },
+    });
+
     await this.notifyVendorsRoundOpen(round, updated);
     return updated;
   }
