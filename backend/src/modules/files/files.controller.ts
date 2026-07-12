@@ -20,7 +20,6 @@ import {
 import { FilesService } from './files.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import * as fs from 'fs';
-import * as https from 'https';
 
 @ApiTags('Files')
 @ApiBearerAuth()
@@ -50,54 +49,16 @@ export class FilesController {
     @Request() req: any,
     @Res() res: any,
   ) {
-    const file = await this.filesService.getFile(id, req.user.id, req.user.role);
-    if (!file) return res.status(404).json({ message: 'File not found' });
+    const result = await this.filesService.downloadFile(id, req.user.id, req.user.role);
+    if (!result) return res.status(404).json({ message: 'File not found' });
+    if ('error' in result) return res.status(502).json({ message: result.error });
 
-    if (file.storagePath.startsWith('http')) {
-      try {
-        const data = await new Promise<Buffer>((resolve, reject) => {
-          https.get(file.storagePath, (response) => {
-            if (response.statusCode !== 200) {
-              reject(new Error(`HTTP ${response.statusCode}`));
-              return;
-            }
-            const chunks: Buffer[] = [];
-            response.on('data', (chunk: Buffer) => chunks.push(chunk));
-            response.on('end', () => resolve(Buffer.concat(chunks)));
-            response.on('error', reject);
-          }).on('error', reject);
-        });
-        res.setHeader('Content-Type', file.mimeType);
-        const encodedName = encodeURIComponent(file.fileName);
-        const asciiName = file.fileName.replace(/[^\x20-\x7E]/g, '_');
-        res.setHeader('Content-Disposition', `attachment; filename="${asciiName}"; filename*=UTF-8''${encodedName}`);
-        res.setHeader('Content-Length', data.length);
-        return res.send(data);
-      } catch {
-        return res.status(502).json({ message: 'Failed to fetch file from storage' });
-      }
-    }
-
-    if (fs.existsSync(file.storagePath)) {
-      const isText =
-        file.mimeType.startsWith('text/') ||
-        file.mimeType === 'application/json';
-      const contentType = isText
-        ? `${file.mimeType}; charset=utf-8`
-        : file.mimeType;
-      res.setHeader('Content-Type', contentType);
-
-      const encodedName = encodeURIComponent(file.fileName);
-      const asciiName = file.fileName.replace(/[^\x20-\x7E]/g, '_');
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="${asciiName}"; filename*=UTF-8''${encodedName}`,
-      );
-
-      fs.createReadStream(file.storagePath).pipe(res);
-    } else {
-      res.status(404).json({ message: 'File no longer available (was stored locally, lost on redeploy). Please re-upload.' });
-    }
+    res.setHeader('Content-Type', result.contentType);
+    const encodedName = encodeURIComponent(result.fileName);
+    const asciiName = result.fileName.replace(/[^\x20-\x7E]/g, '_');
+    res.setHeader('Content-Disposition', `attachment; filename="${asciiName}"; filename*=UTF-8''${encodedName}`);
+    res.setHeader('Content-Length', result.buffer.length);
+    return res.send(result.buffer);
   }
 
   @Delete(':id')

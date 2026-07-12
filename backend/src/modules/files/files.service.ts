@@ -92,6 +92,43 @@ export class FilesService {
     return file;
   }
 
+  async downloadFile(id: string, userId?: string, userRole?: string): Promise<{ buffer: Buffer; contentType: string; fileName: string } | { error: string } | null> {
+    const file = await this.getFile(id, userId, userRole);
+    if (!file) return null;
+
+    if (file.storagePath.startsWith('http') && this.cloudinaryEnabled) {
+      try {
+        const publicId = file.storagePath.split('/upload/')[1]?.split('.')[0];
+        if (!publicId) return { error: 'Invalid Cloudinary URL' };
+        const url = cloudinary.url(publicId, { resource_type: 'auto', sign_url: true });
+        const response = await fetch(url);
+        if (!response.ok) return { error: `Cloudinary returned ${response.status}` };
+        const buffer = Buffer.from(await response.arrayBuffer());
+        return { buffer, contentType: file.mimeType, fileName: file.fileName };
+      } catch {
+        return { error: 'Failed to download from Cloudinary' };
+      }
+    }
+
+    if (file.storagePath.startsWith('http')) {
+      try {
+        const response = await fetch(file.storagePath);
+        if (!response.ok) return { error: `HTTP ${response.status}` };
+        const buffer = Buffer.from(await response.arrayBuffer());
+        return { buffer, contentType: file.mimeType, fileName: file.fileName };
+      } catch {
+        return { error: 'Failed to download file' };
+      }
+    }
+
+    if (fs.existsSync(file.storagePath)) {
+      const buffer = fs.readFileSync(file.storagePath);
+      return { buffer, contentType: file.mimeType, fileName: file.fileName };
+    }
+
+    return { error: 'File not available' };
+  }
+
   async listFiles(userId: string) {
     return this.prisma.file.findMany({
       where: { uploadedBy: userId },
