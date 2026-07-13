@@ -364,7 +364,7 @@ export default function ProcurementDetailPage() {
                             <Icon name="Description" sx={{ fontSize: 20, color: 'text.secondary' }} />
                             <Typography variant="body2" sx={{ flex: 1 }}>{file.fileName}</Typography>
                             <Typography variant="caption" color="text.secondary">{(file.fileSize / 1024).toFixed(0)}KB</Typography>
-                            <Button size="small" href={`/api/files/${file.id}`} download startIcon={<Icon name="Download" />}>Download</Button>
+                            <Button size="small" href={`/api/files/${file.id}`} target="_blank" rel="noopener noreferrer" startIcon={<Icon name="Download" />}>Download</Button>
                           </Box>
                         ))}
                       </Box>
@@ -502,7 +502,8 @@ export default function ProcurementDetailPage() {
                                             variant="outlined"
                                             startIcon={<Icon name="Description" />}
                                             href={`/api/files/${file.id}`}
-                                            download
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                           >
                                             {file.fileName.split('.').pop()}
                                           </Button>
