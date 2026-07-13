@@ -240,6 +240,7 @@ export class ProcurementsService {
         },
         _count: {
           select: {
+            invitations: true,
             submissions: true,
             ebiddingRounds: true,
           },
