@@ -691,7 +691,7 @@ export default function ProcurementDetailPage() {
                       </ListItemIcon>
                       <ListItemText
                         primary={<Typography variant="body2" fontWeight={500}>{event.eventType.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</Typography>}
-                        secondary={<Typography variant="caption" color="text.secondary">{event.actorName ? `${event.actorName} (${event.actorRole})` : event.actorRole} | {new Date(event.timestamp).toLocaleString()}</Typography>}
+                        secondary={<Typography variant="caption" color="text.secondary">{event.actorName ? `${event.actorName} (${event.actorRole})` : `${event.actorRole}${event.actorId ? ` (id:${event.actorId.slice(0,8)})` : ''}`} | {new Date(event.timestamp).toLocaleString()}</Typography>}
                       />
                     </ListItem>
                   ))}
