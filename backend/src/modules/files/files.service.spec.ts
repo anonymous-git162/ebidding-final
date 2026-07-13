@@ -109,6 +109,16 @@ describe('FilesService', () => {
       expect(result).not.toBeNull();
     });
 
+    it('should return file for APPROVER role', async () => {
+      prisma.file.findUnique.mockResolvedValue({
+        id: 'file-1',
+        uploadedBy: 'vendor-1',
+      });
+
+      const result = await service.getFile('file-1', 'approver-1', 'APPROVER');
+      expect(result).not.toBeNull();
+    });
+
     it('should return null for wrong user', async () => {
       prisma.file.findUnique.mockResolvedValue({
         id: 'file-1',

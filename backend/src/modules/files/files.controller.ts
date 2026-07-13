@@ -19,7 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { FilesService } from './files.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import * as fs from 'fs';
+
 
 @ApiTags('Files')
 @ApiBearerAuth()

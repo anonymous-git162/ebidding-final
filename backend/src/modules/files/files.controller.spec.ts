@@ -13,6 +13,7 @@ describe('FilesController', () => {
     service = {
       upload: jest.fn(),
       getFile: jest.fn(),
+      downloadFile: jest.fn(),
       listFiles: jest.fn(),
       deleteFile: jest.fn(),
     } as any;
@@ -52,22 +53,17 @@ describe('FilesController', () => {
   });
 
   it('should download a file', async () => {
-    const mockFile = {
-      id: 'f-1',
-      fileName: 'test.pdf',
-      mimeType: 'application/pdf',
-      storagePath: '/tmp/test.pdf',
-    };
-    service.getFile.mockResolvedValue(mockFile as any);
+    service.downloadFile.mockResolvedValue({ buffer: Buffer.from('test'), contentType: 'application/pdf', fileName: 'test.pdf' });
 
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
       setHeader: jest.fn(),
+      send: jest.fn(),
     };
 
     await controller.download('f-1', mockReq, res);
-    expect(service.getFile).toHaveBeenCalledWith('f-1', mockReq.user.id, mockReq.user.role);
+    expect(service.downloadFile).toHaveBeenCalledWith('f-1', mockReq.user.id, mockReq.user.role);
   });
 
   it('should delete a file', async () => {
@@ -79,7 +75,7 @@ describe('FilesController', () => {
   });
 
   it('should return 404 when file not found on download', async () => {
-    service.getFile.mockResolvedValue(null);
+    service.downloadFile.mockResolvedValue(null);
 
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
 

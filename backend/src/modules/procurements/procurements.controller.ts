@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { Public } from '../../common/decorators/public.decorator';
+
 import { UserRole } from '@prisma/client';
 import { ProcurementsService } from './procurements.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
