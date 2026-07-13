@@ -96,7 +96,6 @@ export class FilesService {
     const file = await this.getFile(id, userId, userRole);
     if (!file) return null;
 
-    // ponytail: proxy remote files through backend to avoid Cloudinary auth & new-tab cookie issues
     if (file.storagePath.startsWith('http')) {
       try {
         const res = await fetch(file.storagePath);
@@ -105,6 +104,27 @@ export class FilesService {
           return { buffer: Buffer.from(arr), contentType: file.mimeType, fileName: file.fileName };
         }
       } catch { /* fallback */ }
+      // ponytail: fallback to signed URL if public fetch fails
+      if (this.cloudinaryEnabled) {
+        try {
+          const urlObj = new URL(file.storagePath);
+          const pathParts = urlObj.pathname.split('/');
+          const uploadIdx = pathParts.indexOf('upload');
+          if (uploadIdx >= 0 && uploadIdx + 1 < pathParts.length) {
+            const resourceType = pathParts[uploadIdx - 1] || 'image';
+            const publicIdWithExt = pathParts.slice(uploadIdx + 1).join('/');
+            const signedUrl = cloudinary.url(publicIdWithExt, {
+              resource_type: resourceType as 'image' | 'video' | 'raw' | 'auto',
+              type: 'upload', sign_url: true, secure: true,
+            });
+            const signedRes = await fetch(signedUrl);
+            if (signedRes.ok) {
+              const arr = await signedRes.arrayBuffer();
+              return { buffer: Buffer.from(arr), contentType: file.mimeType, fileName: file.fileName };
+            }
+          }
+        } catch { /* fallback */ }
+      }
       return { error: 'File not available' };
     }
 
