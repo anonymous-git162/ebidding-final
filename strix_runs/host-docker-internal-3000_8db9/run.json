@@ -1,0 +1,45 @@
+{
+  "run_id": "host-docker-internal-3000_8db9",
+  "run_name": "host-docker-internal-3000_8db9",
+  "start_time": "2026-07-11T00:19:13.096650+00:00",
+  "end_time": "2026-07-11T00:19:22.546512+00:00",
+  "status": "failed",
+  "targets_info": [
+    {
+      "type": "web_application",
+      "details": {
+        "target_url": "http://host.docker.internal:3000"
+      },
+      "original": "http://host.docker.internal:3000"
+    }
+  ],
+  "llm_usage": {
+    "requests": 0,
+    "input_tokens": 0,
+    "input_tokens_details": [
+      {
+        "cached_tokens": 0
+      }
+    ],
+    "output_tokens": 0,
+    "output_tokens_details": [
+      {
+        "reasoning_tokens": 0
+      }
+    ],
+    "total_tokens": 0,
+    "request_usage_entries": [],
+    "cost": 0.0,
+    "agents": []
+  },
+  "scan_mode": "deep",
+  "instruction": "quick test",
+  "non_interactive": true,
+  "local_sources": [],
+  "diff_scope": {
+    "active": false,
+    "mode": "auto"
+  },
+  "scope_mode": "auto",
+  "diff_base": null
+}

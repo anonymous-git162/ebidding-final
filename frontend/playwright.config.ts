@@ -7,7 +7,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
-    baseURL: process.env.BASE_URL || 'https://ebidding-final.vercel.app',
+    baseURL: process.env.BASE_URL || 'https://cenbidding.vercel.app',
     trace: 'on-first-retry',
   },
   projects: [

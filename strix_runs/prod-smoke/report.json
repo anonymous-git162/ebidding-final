@@ -1,0 +1,95 @@
+{
+  "started": "2026-07-11T10:49:10.523577+00:00",
+  "finished": "2026-07-11T10:49:27.461217+00:00",
+  "frontend": "https://cenbidding.vercel.app",
+  "backend": "https://cenbidding-backend.onrender.com",
+  "passed": 14,
+  "failed": 0,
+  "total": 14,
+  "results": [
+    {
+      "name": "Backend /api/health",
+      "ok": true,
+      "detail": "status=200 body={\"status\":\"ok\"}",
+      "duration_ms": 155
+    },
+    {
+      "name": "Frontend home loads",
+      "ok": true,
+      "detail": "status=200 title='E-Bidding Platform'",
+      "duration_ms": 1506
+    },
+    {
+      "name": "Login form visible",
+      "ok": true,
+      "detail": "Email/Password/Sign In present",
+      "duration_ms": 867
+    },
+    {
+      "name": "Auth gate: /dashboard",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 940
+    },
+    {
+      "name": "Auth gate: /procurements",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 1005
+    },
+    {
+      "name": "Auth gate: /approvals",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 947
+    },
+    {
+      "name": "Auth gate: /vendors",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 943
+    },
+    {
+      "name": "Login: admin@ebidding.com",
+      "ok": true,
+      "detail": "redirected to https://cenbidding.vercel.app/dashboard",
+      "duration_ms": 1583
+    },
+    {
+      "name": "Auth page: /dashboard",
+      "ok": true,
+      "detail": "url=https://cenbidding.vercel.app/dashboard keywords_hit=True",
+      "duration_ms": 1508
+    },
+    {
+      "name": "Auth page: /procurements",
+      "ok": true,
+      "detail": "url=https://cenbidding.vercel.app/procurements keywords_hit=True",
+      "duration_ms": 1529
+    },
+    {
+      "name": "Auth page: /approvals",
+      "ok": true,
+      "detail": "url=https://cenbidding.vercel.app/approvals keywords_hit=True",
+      "duration_ms": 1368
+    },
+    {
+      "name": "Reject bad password",
+      "ok": true,
+      "detail": "url=https://cenbidding.vercel.app/login",
+      "duration_ms": 3413
+    },
+    {
+      "name": "Frontend /api/health proxy",
+      "ok": true,
+      "detail": "status=200 body={\"status\":\"ok\"}",
+      "duration_ms": 143
+    },
+    {
+      "name": "No severe console/page errors",
+      "ok": true,
+      "detail": "count=0 ignored_401_noise=True",
+      "duration_ms": 0
+    }
+  ]
+}

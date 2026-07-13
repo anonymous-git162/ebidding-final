@@ -5,7 +5,7 @@
   "outputDirectory": "frontend/dist",
   "installCommand": "npm install",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://ebidding-final-backend.onrender.com/api/$1" },
+    { "source": "/api/(.*)", "destination": "https://cenbidding-backend.onrender.com/api/$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

@@ -1,0 +1,1 @@
+{"statuses": {"7993b880": "failed"}, "parent_of": {"7993b880": null}, "names": {"7993b880": "strix"}, "metadata": {"7993b880": {"task": "\n\nURLs: - http://host.docker.internal:3000\n\nSpecial instructions: Focus on broken access control and SQL injection on the e-bidding endpoint", "skills": []}}, "pending_counts": {"7993b880": 0}}

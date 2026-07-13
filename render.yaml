@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ebidding-final-backend
+    name: cenbidding-backend
     runtime: node
     region: singapore
     plan: free
@@ -15,7 +15,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
-        value: https://ebidding-final.vercel.app
+        value: https://cenbidding.vercel.app
       - key: JWT_SECRET
         sync: false
       - key: REFRESH_TOKEN_SECRET

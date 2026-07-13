@@ -1,0 +1,51 @@
+{
+  "run_id": "ebidding-final_f52f",
+  "run_name": "ebidding-final_f52f",
+  "start_time": "2026-07-11T00:01:11.646554+00:00",
+  "end_time": "2026-07-11T00:01:37.618807+00:00",
+  "status": "failed",
+  "targets_info": [
+    {
+      "type": "local_code",
+      "details": {
+        "target_path": "D:\\Projects\\ebidding-final",
+        "workspace_subdir": "ebidding-final"
+      },
+      "original": "D:\\Projects\\ebidding-final"
+    }
+  ],
+  "llm_usage": {
+    "requests": 0,
+    "input_tokens": 0,
+    "input_tokens_details": [
+      {
+        "cached_tokens": 0
+      }
+    ],
+    "output_tokens": 0,
+    "output_tokens_details": [
+      {
+        "reasoning_tokens": 0
+      }
+    ],
+    "total_tokens": 0,
+    "request_usage_entries": [],
+    "cost": 0.0,
+    "agents": []
+  },
+  "scan_mode": "quick",
+  "instruction": "",
+  "non_interactive": true,
+  "local_sources": [
+    {
+      "source_path": "D:\\Projects\\ebidding-final",
+      "workspace_subdir": "ebidding-final"
+    }
+  ],
+  "diff_scope": {
+    "active": false,
+    "mode": "auto"
+  },
+  "scope_mode": "auto",
+  "diff_base": null
+}

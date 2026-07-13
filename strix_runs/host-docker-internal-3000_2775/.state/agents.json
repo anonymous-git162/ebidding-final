@@ -1,0 +1,1 @@
+{"statuses": {"a4b52b64": "failed"}, "parent_of": {"a4b52b64": null}, "names": {"a4b52b64": "strix"}, "metadata": {"a4b52b64": {"task": "\n\nURLs: - http://host.docker.internal:3000\n\nSpecial instructions: Quick test for broken access control", "skills": []}}, "pending_counts": {"a4b52b64": 0}}
