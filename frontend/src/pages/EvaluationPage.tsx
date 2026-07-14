@@ -162,7 +162,7 @@ export default function EvaluationPage() {
       try {
         await api.put(`/evaluation/${selected}/criteria`, { criteria: defaults });
         setCriteria(defaults);
-      } catch { /* ignore */ }
+      } catch { setError('Failed to save evaluation criteria'); }
     }
     const criterionScores = b && keys.every(k => k in b) ? keys.map((k, i) => ({ criteriaIndex: i, score: b[k].raw ?? 50 })) : undefined;
     setScores(prev => ({ ...prev, [aiDialog.vendorId]: { score: aiDialog.score, comment: `AI: ${aiDialog.reasoning.split('\n')[0]}`, criterionScores } }));

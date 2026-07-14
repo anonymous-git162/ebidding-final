@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Box, Button, Typography, CircularProgress } from '@mui/material';
+import { Box, Button, Typography, CircularProgress, Alert } from '@mui/material';
 import { Icon } from './Icon';
 import api from '../services/api';
 
@@ -17,6 +17,7 @@ interface FileUploaderProps {
 export default function FileUploader({ onAttachmentsChange, initialAttachments }: FileUploaderProps) {
   const [attachments, setAttachments] = useState<FileAttach[]>(initialAttachments ?? []);
   const [uploading, setUploading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,14 +41,21 @@ export default function FileUploader({ onAttachmentsChange, initialAttachments }
   };
 
   const handleRemove = async (id: string) => {
-    try { await api.delete(`/files/${id}`); } catch { /* ignore */ }
-    const next = attachments.filter(a => a.id !== id);
-    setAttachments(next);
-    onAttachmentsChange(next);
+    setDeleteError('');
+    try {
+      await api.delete(`/files/${id}`);
+      const next = attachments.filter(a => a.id !== id);
+      setAttachments(next);
+      onAttachmentsChange(next);
+    } catch {
+      setDeleteError('Failed to delete file');
+      setTimeout(() => setDeleteError(''), 3000);
+    }
   };
 
   return (
     <Box>
+      {deleteError && <Alert severity="error" sx={{ mb: 1 }} onClose={() => setDeleteError('')}>{deleteError}</Alert>}
       <input ref={fileInputRef} type="file" hidden onChange={handleFileUpload} />
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Button

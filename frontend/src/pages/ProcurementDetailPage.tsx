@@ -80,7 +80,7 @@ export default function ProcurementDetailPage() {
       const evs = evRes.data?.data || evRes.data || [];
       const leads = leadRes.data?.data || leadRes.data || [];
       setEvaluators([...leads, ...evs]);
-    } catch { /* ignore */ }
+    } catch { setError('Failed to load evaluators'); }
   };
 
   const handleAssignEvaluators = async () => {
@@ -729,7 +729,7 @@ export default function ProcurementDetailPage() {
                 onChange={(e) => setDialog(prev => prev ? { ...prev, approverId: e.target.value } as any : null)}
                 onFocus={async () => {
                   if (!(dialog as any).approverList) {
-                    try { const res = await api.get('/users', { params: { role: 'APPROVER', limit: 100 } }); setDialog(prev => prev ? { ...prev, approverList: res.data?.data || res.data || [] } as any : null); } catch {}
+                    try { const res = await api.get('/users', { params: { role: 'APPROVER', limit: 100 } }); setDialog(prev => prev ? { ...prev, approverList: res.data?.data || res.data || [] } as any : null); } catch { setError('Failed to load approvers'); }
                   }
                 }}
                 SelectProps={{ native: true }}

@@ -44,10 +44,11 @@ export default function ProcurementCreatePage() {
   const [aiTor, setAiTor] = useState('');
   const [properties, setProperties] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [propertiesError, setPropertiesError] = useState('');
   const [fileAttachments, setFileAttachments] = useState<{ id: string; fileName: string; fileSize: number }[]>([]);
 
   useEffect(() => {
-    api.get('/users/properties').then((res) => setProperties(res.data || [])).catch(() => {});
+    api.get('/users/properties').then((res) => setProperties(res.data || [])).catch(() => setPropertiesError('Could not load properties'));
   }, []);
 
   useEffect(() => {
@@ -294,12 +295,13 @@ export default function ProcurementCreatePage() {
         <Grid item xs={12} md={6}>
           <FormControl fullWidth>
             <InputLabel>Property / Location</InputLabel>
-            <Select value={form.propertyId} label="Property / Location" onChange={(e) => setForm({ ...form, propertyId: e.target.value, departmentId: '' })}>
+            <Select value={form.propertyId} label="Property / Location" onChange={(e) => setForm({ ...form, propertyId: e.target.value, departmentId: '' })} error={!!propertiesError}>
               <MenuItem value=""><em>Not assigned</em></MenuItem>
               {properties.map((p) => (
                 <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
               ))}
             </Select>
+            {propertiesError && <Typography variant="caption" color="error">{propertiesError}</Typography>}
           </FormControl>
         </Grid>
         <Grid item xs={12} md={6}>
