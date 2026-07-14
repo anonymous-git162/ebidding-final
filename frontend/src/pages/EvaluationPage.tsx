@@ -28,7 +28,7 @@ export default function EvaluationPage() {
   const [criteriaDialog, setCriteriaDialog] = useState(false);
   const [criteriaForm, setCriteriaForm] = useState<{ name: string; weight: number; maxScore: number }[]>([]);
   const [aiLanguage, setAiLanguage] = useState('English');
-  const LANGUAGES = ['English', 'Thai'];
+  const LANGUAGES = ['English', 'Thai', 'Arabic', 'Japanese', 'Chinese', 'Vietnamese'];
 
   useEffect(() => {
     api.get('/procurements', { params: { limit: 50 } })

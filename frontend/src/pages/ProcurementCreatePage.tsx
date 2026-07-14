@@ -25,7 +25,7 @@ const INITIAL_FORM = {
   language: 'English',
 };
 
-const LANGUAGES = ['English', 'Thai'];
+const LANGUAGES = ['English', 'Thai', 'Arabic', 'Japanese', 'Chinese', 'Vietnamese'];
 
 const REQUEST_TYPES = [
   { value: 'RFI', label: 'RFI', subtitle: 'Request for Information', description: 'Gather information from vendors before making procurement decisions', color: TYPE_COLORS.RFI, icon: 'Search' },
