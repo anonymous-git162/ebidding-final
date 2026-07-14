@@ -33,7 +33,7 @@ describe('RfqSubmissionService', () => {
 
   describe('create', () => {
     it('should create a draft RFQ submission', async () => {
-      prisma.procurement.findUnique.mockResolvedValue({ id: 'p-1' } as any);
+      prisma.procurement.findUnique.mockResolvedValue({ id: 'p-1', status: 'RFQ_OPEN' } as any);
       const mockVendor = { id: 'v-1', userId: 'u-1' };
       prisma.vendor.findUnique.mockResolvedValue(mockVendor as any);
       prisma.vendorInvitation.findFirst.mockResolvedValue({ id: 'inv-1' } as any);
@@ -43,10 +43,34 @@ describe('RfqSubmissionService', () => {
         price: 50000,
         status: 'DRAFT',
       } as any);
+      const audit = (service as any).auditService;
 
-      const result = await service.create('p-1', 'u-1', 50000, 'Proposal text');
+      const result = await service.create('p-1', 'v-1', 50000, 'Proposal text');
       expect(result).toHaveProperty('id', 'sub-1');
-      expect(prisma.rfqSubmission.create).toHaveBeenCalled();
+      expect(prisma.rfqSubmission.create).toHaveBeenCalledWith({
+        data: {
+          procurementId: 'p-1',
+          vendorId: 'v-1',
+          price: 50000,
+          proposalText: 'Proposal text',
+          status: 'DRAFT',
+        },
+      });
+      // actorId must be User.id (u-1), not Vendor.id (v-1)
+      expect(audit.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'SUBMISSION_CREATED',
+          actorId: 'u-1',
+        }),
+      );
+    });
+
+    it('should reject create when vendor profile is missing', async () => {
+      prisma.procurement.findUnique.mockResolvedValue({ id: 'p-1', status: 'RFQ_OPEN' } as any);
+      prisma.vendor.findUnique.mockResolvedValue(null);
+      await expect(
+        service.create('p-1', 'missing-vendor', 1000, 'x'),
+      ).rejects.toThrow('Vendor profile not found');
     });
   });
 

@@ -24,9 +24,21 @@ export class RfqSubmissionService {
   ) {
     const procurement = await this.prisma.procurement.findUnique({
       where: { id: procurementId },
-      select: { id: true },
+      select: { id: true, status: true },
     });
     if (!procurement) throw new NotFoundException('Procurement not found');
+    if (!['RFQ_OPEN', 'VENDOR_RESPONSE_IN_PROGRESS'].includes(procurement.status)) {
+      throw new BadRequestException('Submissions are not open for this procurement');
+    }
+
+    // vendorId is Vendor.id (profile); AuditLog.actorId must be User.id
+    const vendor = await this.prisma.vendor.findUnique({
+      where: { id: vendorId },
+      select: { id: true, userId: true },
+    });
+    if (!vendor) {
+      throw new BadRequestException('Vendor profile not found');
+    }
 
     const invitation = await this.prisma.vendorInvitation.findFirst({
       where: { procurementId, vendorId, invitationStatus: 'ACCEPTED' },
@@ -53,7 +65,7 @@ export class RfqSubmissionService {
       entityType: 'RfqSubmission',
       entityId: submission.id,
       action: 'SUBMISSION_CREATED',
-      actorId: vendorId,
+      actorId: vendor.userId,
       afterData: { procurementId, price },
     });
 

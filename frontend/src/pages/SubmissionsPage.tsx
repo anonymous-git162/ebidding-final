@@ -28,7 +28,7 @@ export default function SubmissionsPage() {
 
   const load = async () => {
     try {
-      const statusFilter = user?.role === 'VENDOR' ? 'RFQ_OPEN,RFP_PUBLISHED,RFI_PUBLISHED' : 'RFQ_OPEN';
+      const statusFilter = user?.role === 'VENDOR' ? 'RFQ_OPEN,RFP_PUBLISHED,RFI_PUBLISHED,VENDOR_RESPONSE_IN_PROGRESS' : 'RFQ_OPEN';
       const [procRes, invRes, subRes] = await Promise.all([
         api.get('/procurements', { params: { status: statusFilter, limit: 50 } }),
         api.get('/vendor-invitations/my').catch(() => ({ data: [] })),
