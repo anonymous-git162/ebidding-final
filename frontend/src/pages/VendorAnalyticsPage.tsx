@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { STATUS_COLORS } from '../utils/statusColors';
 import {
-  Box, Grid, Card, CardContent, Typography, LinearProgress, Chip,
+  Box, Grid, Card, CardContent, Typography, LinearProgress, Chip, Alert,
   Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
   Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
 } from '@mui/material';
@@ -41,6 +41,7 @@ export default function VendorAnalyticsPage() {
   const [editError, setEditError] = useState('');
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [error, setError] = useState('');
 
   useEffect(() => { loadData(); }, []);
 
@@ -70,6 +71,7 @@ export default function VendorAnalyticsPage() {
         setMyBids(data);
       } catch { /* no bids */ }
     } catch {
+      setError('Failed to load analytics data');
     } finally {
       setLoading(false);
     }
@@ -136,6 +138,7 @@ export default function VendorAnalyticsPage() {
 
   return (
     <Box>
+      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h5" fontWeight={700} sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>Vendor Analytics</Typography>
