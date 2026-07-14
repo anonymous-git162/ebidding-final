@@ -46,7 +46,7 @@ export default function RegisterPage() {
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Box sx={{ width: 56, height: 56, borderRadius: 2, bgcolor: 'primary.main', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-              <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 22 }}>eB</Typography>
+              <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 22 }}>CB</Typography>
             </Box>
             <Typography variant="h5" fontWeight={700}>Vendor Registration</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Register your company to participate in bidding</Typography>

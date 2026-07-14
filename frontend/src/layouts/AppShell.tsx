@@ -107,9 +107,9 @@ export default function AppShell() {
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
         <Box sx={{ width: 36, height: 36, borderRadius: 1.5, bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 16 }}>eB</Typography>
+          <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 16 }}>CB</Typography>
         </Box>
-        <Typography variant="h6" fontWeight={700} color="primary">eBidding</Typography>
+        <Typography variant="h6" fontWeight={700} color="primary">CenBidding</Typography>
       </Box>
       <Divider />
       <List sx={{ flex: 1, px: 1 }}>
