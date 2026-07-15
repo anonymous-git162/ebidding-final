@@ -11,6 +11,7 @@ import {
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import StatusBadge from '../components/StatusBadge';
+import { TYPE_COLORS } from '../utils/statusColors';
 
 const STATUS_FLOW = ['DRAFT','SUBMITTED','UNDER_PROCUREMENT_REVIEW','RETURNED_FOR_REVISION','APPROVED','RFI_PUBLISHED','RFI_COLLECTING','RFI_CLOSED','RFP_DRAFTING','RFP_PUBLISHED','RFQ_OPEN','VENDOR_RESPONSE_IN_PROGRESS','EBIDDING_PREP','EBIDDING_OPEN','EBIDDING_CLOSED','EVALUATION','PENDING_APPROVAL','RETURNED_FROM_APPROVAL','AWARD_APPROVED','AWARD_ANNOUNCED','COMPLETED','REJECTED','CANCELLED'];
 
@@ -173,7 +174,7 @@ export default function ProcurementDetailPage() {
   const stepIdx = getStepIndex(status);
   const assignedIds = new Set((procurement.evaluatorAssignments || []).map((a: any) => a.evaluatorId));
   const availableEvaluators = evaluators.filter((ev: any) => !assignedIds.has(ev.id));
-  const typeColor = procurement.requestType === 'RFP' ? 'primary.main' : procurement.requestType === 'RFQ' ? 'warning.main' : 'text.secondary';
+  const typeColor = TYPE_COLORS[procurement.requestType] || 'text.secondary';
   const isLeadEvaluator = procurement.evaluatorAssignments?.some(
     (a: any) => a.evaluatorId === user?.id && a.isLead,
   );

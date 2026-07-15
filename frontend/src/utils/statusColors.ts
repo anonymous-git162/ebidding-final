@@ -22,3 +22,9 @@ export const TYPE_COLORS: Record<string, string> = {
   RFQ: '#F59E0B',
   RFI: '#6B7280',
 };
+
+export const TYPE_COLORS_BG: Record<string, string> = {
+  RFP: '#2563EB15',
+  RFQ: '#F59E0B15',
+  RFI: '#6B728015',
+};

@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { TYPE_COLORS, TYPE_COLORS_BG } from '../utils/statusColors';
 
 export default function InvitationsPage() {
   const { user } = useAuth();
@@ -268,7 +269,7 @@ export default function InvitationsPage() {
             </TableHead>
             <TableBody>
               {filteredInvitations.map((inv) => {
-                const typeColor = inv.procurement?.requestType === 'RFP' ? 'info.main' : inv.procurement?.requestType === 'RFQ' ? 'warning.main' : 'grey.600';
+                const typeColor = TYPE_COLORS[inv.procurement?.requestType] || 'text.secondary';
                 return (
                   <TableRow key={inv.id} hover>
                     <TableCell>
@@ -278,7 +279,7 @@ export default function InvitationsPage() {
                       <Chip label={inv.procurement?.requestNo || '-'} size="small" variant="outlined" />
                     </TableCell>
                     <TableCell>
-                      <Chip label={inv.procurement?.requestType || '-'} size="small" sx={{ bgcolor: `${typeColor}15`, color: typeColor, fontWeight: 600 }} />
+                      <Chip label={inv.procurement?.requestType || '-'} size="small" sx={{ bgcolor: TYPE_COLORS_BG[inv.procurement?.requestType] || 'action.hover', color: typeColor, fontWeight: 600 }} />
                     </TableCell>
                     {user?.role !== 'VENDOR' && (
                       <TableCell>

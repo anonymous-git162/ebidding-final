@@ -8,6 +8,7 @@ import { Icon } from '../components/Icon';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import StatusBadge from '../components/StatusBadge';
+import { TYPE_COLORS, TYPE_COLORS_BG } from '../utils/statusColors';
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'All Results' },
@@ -195,13 +196,13 @@ export default function ResultsPage() {
             </TableHead>
             <TableBody>
               {filteredItems.map((item) => {
-                const typeColor = item.requestType === 'RFP' ? 'primary.main' : item.requestType === 'RFQ' ? 'warning.main' : 'text.secondary';
+                const typeColor = TYPE_COLORS[item.requestType] || 'text.secondary';
                 return (
                   <TableRow key={item.id} hover sx={{ cursor: 'pointer' }} tabIndex={0} role="button" onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/procurements/${item.id}`); } }} onClick={() => navigate(`/procurements/${item.id}`)}>
                     <TableCell sx={{ fontWeight: 600 }}>{item.requestNo}</TableCell>
                     <TableCell>{item.title}</TableCell>
                     <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
-                      <Chip label={item.requestType} size="small" sx={{ bgcolor: `${typeColor}15`, color: typeColor, fontWeight: 600 }} />
+                      <Chip label={item.requestType} size="small" sx={{ bgcolor: TYPE_COLORS_BG[item.requestType] || 'action.hover', color: typeColor, fontWeight: 600 }} />
                     </TableCell>
                     <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{item.budgetEstimate ? `${item.currency === 'EUR' ? '€' : item.currency === 'GBP' ? '£' : item.currency === 'THB' ? '฿' : '$'}${Number(item.budgetEstimate).toLocaleString()} ${item.currency || 'USD'}` : '—'}</TableCell>
                     <TableCell><StatusBadge status={item.status} /></TableCell>

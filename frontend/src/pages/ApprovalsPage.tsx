@@ -8,6 +8,7 @@ import {
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import StatusBadge from '../components/StatusBadge';
+import { TYPE_COLORS } from '../utils/statusColors';
 
 const ESCALATION_COLORS: Record<string, string> = {
   CRITICAL: 'error.main', WARNING: 'warning.dark', OVERDUE: 'warning.main', NORMAL: 'text.secondary',
@@ -117,7 +118,7 @@ export default function ApprovalsPage() {
             </TableHead>
             <TableBody>
               {items.map((item) => {
-                const typeColor = item.requestType === 'RFP' ? 'primary.main' : item.requestType === 'RFQ' ? 'warning.main' : 'text.secondary';
+                const typeColor = TYPE_COLORS[item.requestType] || 'text.secondary';
                 const acted = (item.approvals || []).some((a: any) => a.approverId === user?.id);
                 return (
                   <TableRow key={item.id} hover sx={{ cursor: 'pointer', opacity: acted ? 0.6 : 1, textDecoration: acted ? 'line-through' : 'none' }} tabIndex={0} role="button" onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/procurements/${item.id}`); } }} onClick={() => navigate(`/procurements/${item.id}`)}>

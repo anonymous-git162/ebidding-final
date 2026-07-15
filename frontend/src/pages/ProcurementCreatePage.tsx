@@ -51,6 +51,7 @@ export default function ProcurementCreatePage() {
   const [departments, setDepartments] = useState<any[]>([]);
   const [propertiesError, setPropertiesError] = useState('');
   const [fileAttachments, setFileAttachments] = useState<{ id: string; fileName: string; fileSize: number }[]>([]);
+  const [confirmReset, setConfirmReset] = useState<string | null>(null);
 
   useEffect(() => {
     api.get('/users/properties').then((res) => setProperties(res.data || [])).catch(() => setPropertiesError('Could not load properties'));
@@ -155,6 +156,16 @@ export default function ProcurementCreatePage() {
     return 'upcoming';
   };
 
+  const isFormDirty = Object.entries(form).some(([key, val]) => key !== 'requestType' && val !== (INITIAL_FORM as any)[key]) || fileAttachments.length > 0;
+
+  const resetAndSwitchType = (newType: string) => {
+    setForm({ ...INITIAL_FORM, requestType: newType });
+    setFileAttachments([]);
+    setErrors({});
+    setTouched({});
+    setConfirmReset(null);
+  };
+
   const renderTypeSelection = () => (
     <Box>
       <Typography variant="h6" fontWeight={600} gutterBottom>Select Request Type</Typography>
@@ -167,10 +178,12 @@ export default function ProcurementCreatePage() {
               <Paper
                 elevation={0}
                 onClick={() => {
-                  setForm({ ...INITIAL_FORM, requestType: type.value });
-                  setFileAttachments([]);
-                  setErrors({});
-                  setTouched({});
+                  if (form.requestType === type.value) return;
+                  if (isFormDirty) {
+                    setConfirmReset(type.value);
+                  } else {
+                    resetAndSwitchType(type.value);
+                  }
                 }}
                 sx={{
                   p: 0, cursor: 'pointer', border: '2px solid', borderColor: selected ? type.color : 'divider',
@@ -488,6 +501,18 @@ export default function ProcurementCreatePage() {
         <DialogActions>
           <Button onClick={() => setAiDialogOpen(false)}>Close</Button>
           <Button variant="contained" onClick={handleAcceptTor}>Accept & Fill Description</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirm Reset Dialog */}
+      <Dialog open={!!confirmReset} onClose={() => setConfirmReset(null)}>
+        <DialogTitle>Switch Request Type?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">Your current data will be cleared. This cannot be undone.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmReset(null)}>Cancel</Button>
+          <Button variant="contained" color="warning" onClick={() => resetAndSwitchType(confirmReset!)}>Switch & Clear</Button>
         </DialogActions>
       </Dialog>
     </Box>
