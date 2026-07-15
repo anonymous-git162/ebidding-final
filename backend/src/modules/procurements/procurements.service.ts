@@ -258,6 +258,18 @@ export class ProcurementsService {
 
     if (!procurement) throw new NotFoundException('Procurement not found');
 
+    // Deduplicate submissions: keep latest per vendor
+    if (procurement.submissions) {
+      const vendorMap = new Map<string, any>();
+      for (const sub of procurement.submissions) {
+        const existing = vendorMap.get(sub.vendorId);
+        if (!existing || new Date(sub.updatedAt) > new Date(existing.updatedAt)) {
+          vendorMap.set(sub.vendorId, sub);
+        }
+      }
+      procurement.submissions = Array.from(vendorMap.values());
+    }
+
     // Authorization: only allow access based on role
     if (user.role === 'VENDOR') {
       const isInvited = procurement.invitations?.some(
@@ -579,6 +591,23 @@ export class ProcurementsService {
   }
 
   async completeEbidding(id: string, userId: string) {
+    const procurement = await this.prisma.procurement.findUnique({
+      where: { id },
+      select: { status: true, propertyId: true },
+    });
+    if (!procurement) throw new NotFoundException('Procurement not found');
+
+    if (procurement.status === 'VENDOR_RESPONSE_IN_PROGRESS') {
+      const count = await this.prisma.rfqSubmission.count({
+        where: { procurementId: id, status: SubmissionStatus.SUBMITTED },
+      });
+      if (count < 2) {
+        throw new BadRequestException(
+          'At least 2 vendors must submit a proposal before skipping to evaluation.',
+        );
+      }
+    }
+
     const openRounds = await this.prisma.ebiddingRound.count({
       where: { procurementId: id, status: 'OPEN' },
     });
@@ -593,11 +622,6 @@ export class ProcurementsService {
       userId,
       'PROCUREMENT',
     );
-
-    const procurement = await this.prisma.procurement.findUnique({
-      where: { id },
-      select: { propertyId: true },
-    });
 
     if (procurement?.propertyId) {
       const evaluators = await this.prisma.user.findMany({

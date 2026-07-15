@@ -28,7 +28,7 @@ export default function SubmissionsPage() {
 
   const load = async () => {
     try {
-      const statusFilter = user?.role === 'VENDOR' ? 'RFQ_OPEN,RFP_PUBLISHED,RFI_PUBLISHED,VENDOR_RESPONSE_IN_PROGRESS' : 'RFQ_OPEN';
+      const statusFilter = user?.role === 'VENDOR' ? 'RFQ_OPEN,VENDOR_RESPONSE_IN_PROGRESS' : 'RFQ_OPEN';
       const [procRes, invRes, subRes] = await Promise.all([
         api.get('/procurements', { params: { status: statusFilter, limit: 50 } }),
         api.get('/vendor-invitations/my').catch(() => ({ data: [] })),
@@ -61,7 +61,7 @@ export default function SubmissionsPage() {
       });
       if (data?.id) {
         await api.put(`/rfq-submissions/${data.id}/submit`);
-        setMySubmissions(prev => [...prev, { ...data, status: 'SUBMITTED', procurementId: form.procurementId }]);
+        setMySubmissions(prev => [...prev, { ...data, status: 'SUBMITTED', procurementId: form.procurementId, files: fileAttachments }]);
       }
       setDialogOpen(false);
       setForm({ procurementId: '', price: '', proposalText: '' });

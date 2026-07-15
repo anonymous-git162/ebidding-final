@@ -172,6 +172,9 @@ export default function ProcurementDetailPage() {
   const assignedIds = new Set((procurement.evaluatorAssignments || []).map((a: any) => a.evaluatorId));
   const availableEvaluators = evaluators.filter((ev: any) => !assignedIds.has(ev.id));
   const typeColor = procurement.requestType === 'RFP' ? 'primary.main' : procurement.requestType === 'RFQ' ? 'warning.main' : 'text.secondary';
+  const isLeadEvaluator = procurement.evaluatorAssignments?.some(
+    (a: any) => a.evaluatorId === user?.id && a.isLead,
+  );
 
   return (
     <Box>
@@ -231,7 +234,7 @@ export default function ProcurementDetailPage() {
             <Button variant="contained" color="warning" startIcon={<Icon name="Send" />} onClick={() => handleAction('resubmitForApproval')}>Resubmit for Approval</Button>
           )}
           {role === 'PROCUREMENT' && (status === 'RFP_PUBLISHED' || status === 'RFQ_OPEN') && (
-            <Button variant="contained" color="info" startIcon={<Icon name="Send" />} onClick={() => handleAction('vendorResponse')}>Complete Vendor Response</Button>
+            <Button variant="contained" color="info" startIcon={<Icon name="Send" />} onClick={() => handleAction('vendorResponse')}>Open Vendor Response</Button>
           )}
           {role === 'PROCUREMENT' && status === 'VENDOR_RESPONSE_IN_PROGRESS' && (
             <Button variant="contained" color="warning" startIcon={<Icon name="Gavel" />} onClick={() => handleAction('startEbidding')}>Start E-Bidding</Button>
@@ -248,8 +251,11 @@ export default function ProcurementDetailPage() {
           {role === 'PROCUREMENT' && status === 'VENDOR_RESPONSE_IN_PROGRESS' && (
             <Button variant="outlined" color="info" startIcon={<Icon name="CheckCircle" />} onClick={() => handleAction('completeEbidding')} sx={{ ml: 1 }}>Skip to Evaluation</Button>
           )}
-          {(role === 'PROCUREMENT' || role === 'EVALUATOR' || role === 'LEAD_EVALUATOR') && status === 'EVALUATION' && (
+          {(role === 'PROCUREMENT' || role === 'LEAD_EVALUATOR' || (role === 'EVALUATOR' && isLeadEvaluator)) && status === 'EVALUATION' && (
             <Button variant="contained" color="info" startIcon={<Icon name="CheckCircle" />} onClick={() => handleAction('completeEvaluation')}>Complete Evaluation</Button>
+          )}
+          {role === 'EVALUATOR' && !isLeadEvaluator && status === 'EVALUATION' && (
+            <Button variant="outlined" color="info" startIcon={<Icon name="Assessment" />} href="/evaluation">Go to Evaluation Page</Button>
           )}
           {(role === 'APPROVER' || role === 'ADMIN') && status === 'PENDING_APPROVAL' && (
             <>

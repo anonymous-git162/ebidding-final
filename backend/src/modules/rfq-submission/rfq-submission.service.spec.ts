@@ -37,11 +37,19 @@ describe('RfqSubmissionService', () => {
       const mockVendor = { id: 'v-1', userId: 'u-1' };
       prisma.vendor.findUnique.mockResolvedValue(mockVendor as any);
       prisma.vendorInvitation.findFirst.mockResolvedValue({ id: 'inv-1' } as any);
+      prisma.rfqSubmission.findFirst.mockResolvedValue(null);
       prisma.rfqSubmission.create.mockResolvedValue({
         id: 'sub-1',
         procurementId: 'p-1',
         price: 50000,
         status: 'DRAFT',
+      } as any);
+      prisma.rfqSubmission.findUnique.mockResolvedValue({
+        id: 'sub-1',
+        procurementId: 'p-1',
+        price: 50000,
+        status: 'DRAFT',
+        files: [],
       } as any);
       const audit = (service as any).auditService;
 
@@ -72,21 +80,55 @@ describe('RfqSubmissionService', () => {
         service.create('p-1', 'missing-vendor', 1000, 'x'),
       ).rejects.toThrow('Vendor profile not found');
     });
+
+    it('should reject duplicate SUBMITTED submission', async () => {
+      prisma.procurement.findUnique.mockResolvedValue({ id: 'p-1', status: 'RFQ_OPEN' } as any);
+      prisma.vendor.findUnique.mockResolvedValue({ id: 'v-1', userId: 'u-1' } as any);
+      prisma.vendorInvitation.findFirst.mockResolvedValue({ id: 'inv-1' } as any);
+      prisma.rfqSubmission.findFirst.mockResolvedValue({ id: 'sub-1', status: 'SUBMITTED' } as any);
+
+      await expect(
+        service.create('p-1', 'v-1', 50000, 'Text'),
+      ).rejects.toThrow('You have already submitted a proposal for this procurement');
+    });
+
+    it('should update existing DRAFT instead of creating new', async () => {
+      prisma.procurement.findUnique.mockResolvedValue({ id: 'p-1', status: 'RFQ_OPEN' } as any);
+      prisma.vendor.findUnique.mockResolvedValue({ id: 'v-1', userId: 'u-1' } as any);
+      prisma.vendorInvitation.findFirst.mockResolvedValue({ id: 'inv-1' } as any);
+      prisma.rfqSubmission.findFirst.mockResolvedValue({ id: 'sub-1', status: 'DRAFT' } as any);
+      prisma.rfqSubmission.update.mockResolvedValue({ id: 'sub-1', status: 'DRAFT' } as any);
+      prisma.rfqSubmission.findUnique.mockResolvedValue({ id: 'sub-1', status: 'DRAFT', files: [] } as any);
+
+      const result = await service.create('p-1', 'v-1', 55000, 'Updated text');
+      expect(result).toHaveProperty('id', 'sub-1');
+      expect(prisma.rfqSubmission.update).toHaveBeenCalledWith({
+        where: { id: 'sub-1' },
+        data: { price: 55000, proposalText: 'Updated text' },
+      });
+      expect(prisma.rfqSubmission.create).not.toHaveBeenCalled();
+    });
   });
 
   describe('submit', () => {
     it('should submit a draft submission', async () => {
-      prisma.rfqSubmission.findUnique.mockResolvedValue({
-        id: 'sub-1',
-        vendor: { userId: 'u-1', companyName: 'Test Corp' },
-        status: 'DRAFT',
-        procurement: {
-          id: 'p-1',
-          title: 'Test',
-          requestNo: 'REQ-001',
-          requesterId: 'requester-1',
-        },
-      } as any);
+      prisma.rfqSubmission.findUnique
+        .mockResolvedValueOnce({
+          id: 'sub-1',
+          vendor: { userId: 'u-1', companyName: 'Test Corp' },
+          status: 'DRAFT',
+          procurement: {
+            id: 'p-1',
+            title: 'Test',
+            requestNo: 'REQ-001',
+            requesterId: 'requester-1',
+          },
+        } as any)
+        .mockResolvedValueOnce({
+          id: 'sub-1',
+          status: 'SUBMITTED',
+          files: [],
+        } as any);
       prisma.rfqSubmission.update.mockResolvedValue({
         id: 'sub-1',
         status: 'SUBMITTED',
@@ -95,7 +137,7 @@ describe('RfqSubmissionService', () => {
       prisma.evaluatorAssignment.findMany.mockResolvedValue([] as any);
 
       const result = await service.submit('sub-1', 'u-1');
-      expect(result.status).toBe('SUBMITTED');
+      expect(result!.status).toBe('SUBMITTED');
     });
 
     it('should throw NotFoundException for missing submission', async () => {

@@ -9,6 +9,7 @@ import {
   Query,
   Request,
   UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -251,7 +252,7 @@ export class ProcurementsController {
 
   @Post(':id/vendor-response/complete')
   @Roles(UserRole.PROCUREMENT)
-  @ApiOperation({ summary: 'Close vendor response period' })
+  @ApiOperation({ summary: 'Open vendor response period' })
   completeVendorResponse(@Param('id') id: string, @Request() req: any) {
     return this.procurementsService.completeVendorResponse(id, req.user.id);
   }
@@ -271,9 +272,15 @@ export class ProcurementsController {
   }
 
   @Post(':id/evaluation/complete')
-  @Roles(UserRole.PROCUREMENT, UserRole.EVALUATOR, UserRole.LEAD_EVALUATOR)
+  @Roles(UserRole.PROCUREMENT, UserRole.LEAD_EVALUATOR, UserRole.EVALUATOR)
   @ApiOperation({ summary: 'Complete evaluation and send for approval' })
-  completeEvaluation(@Param('id') id: string, @Request() req: any) {
+  async completeEvaluation(@Param('id') id: string, @Request() req: any) {
+    if (req.user.role === UserRole.EVALUATOR) {
+      const isLead = await this.prisma.evaluatorAssignment.findFirst({
+        where: { procurementId: id, evaluatorId: req.user.id, isLead: true },
+      });
+      if (!isLead) throw new ForbiddenException('Only the lead evaluator can complete evaluation');
+    }
     return this.procurementsService.completeEvaluation(id, req.user.id);
   }
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { Box, CircularProgress, Typography, Alert, Button } from '@mui/material';
 import AppShell from '../layouts/AppShell';
@@ -38,7 +38,15 @@ function hasAccess(role: string, path: string): boolean {
   const allowed = ROLE_ROUTES[role];
   if (!allowed) return false;
   if (allowed.includes('*')) return true;
-  const segment = path.replace(/^\//, '').split('/')[0] || 'dashboard';
+  const clean = path.replace(/^\//, '');
+  const segments = clean.split('/').filter(Boolean);
+  const segment = segments[0] || 'dashboard';
+
+  // Vendors may view procurements list/detail but must not create or edit
+  if (role === 'VENDOR' && segment === 'procurements') {
+    if (segments[1] === 'new' || segments[2] === 'edit') return false;
+  }
+
   return allowed.includes(segment);
 }
 
@@ -57,16 +65,23 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function RoleGuard({ path, children }: { path: string; children: React.ReactNode }) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Prefer actual URL so sub-routes (e.g. /procurements/new) enforce correctly
+  const effectivePath = location.pathname || path;
   const [showAccessDenied, setShowAccessDenied] = useState(false);
-  if (!user) return <Navigate to="/login" replace />;
+
   useEffect(() => {
-    if (!hasAccess(user.role, path)) {
+    if (!user) return;
+    if (!hasAccess(user.role, effectivePath)) {
       setShowAccessDenied(true);
       const timer = setTimeout(() => navigate('/dashboard', { replace: true }), 3000);
       return () => clearTimeout(timer);
     }
-  }, [user, path, navigate]);
-  if (showAccessDenied) {
+    setShowAccessDenied(false);
+  }, [user, effectivePath, navigate]);
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (showAccessDenied || !hasAccess(user.role, effectivePath)) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '60vh', gap: 2 }}>
         <Alert severity="warning" sx={{ maxWidth: 400 }}>
@@ -75,7 +90,6 @@ function RoleGuard({ path, children }: { path: string; children: React.ReactNode
       </Box>
     );
   }
-  if (!hasAccess(user.role, path)) return null;
   return <>{children}</>;
 }
 

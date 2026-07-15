@@ -70,7 +70,9 @@ await page.goto('/approvals');
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Approval Inbox').first()).toBeVisible({ timeout: 10000 });
 
-    await page.getByRole('button', { name: 'Reject' }).click();
+    // exact: true — MUI table rows are role=button and include cell text that
+    // otherwise also matches name: 'Reject' (strict-mode violation).
+    await page.getByRole('button', { name: 'Reject', exact: true }).click();
 
     await expect(page.getByRole('dialog')).toBeVisible();
     await expect(page.getByRole('dialog').getByRole('heading', { name: 'Reject' })).toBeVisible();
@@ -107,7 +109,7 @@ await page.goto('/approvals');
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Approval Inbox').first()).toBeVisible({ timeout: 10000 });
 
-    await page.getByRole('button', { name: 'Return' }).click();
+    await page.getByRole('button', { name: 'Return', exact: true }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
 
     await page.getByLabel('Reason').fill('Needs more documentation');

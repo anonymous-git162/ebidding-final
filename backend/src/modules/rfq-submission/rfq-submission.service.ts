@@ -49,6 +49,34 @@ export class RfqSubmissionService {
       );
     }
 
+    const existing = await this.prisma.rfqSubmission.findFirst({
+      where: { procurementId, vendorId },
+      orderBy: { updatedAt: 'desc' },
+    });
+    if (existing) {
+      if (existing.status === 'SUBMITTED') {
+        throw new BadRequestException('You have already submitted a proposal for this procurement');
+      }
+      if (fileIds && fileIds.length > 0) {
+        await this.prisma.file.updateMany({
+          where: { submissionId: existing.id },
+          data: { submissionId: null },
+        });
+        await this.prisma.file.updateMany({
+          where: { id: { in: fileIds } },
+          data: { submissionId: existing.id },
+        });
+      }
+      const updated = await this.prisma.rfqSubmission.update({
+        where: { id: existing.id },
+        data: { price, proposalText },
+      });
+      return this.prisma.rfqSubmission.findUnique({
+        where: { id: existing.id },
+        include: { files: true },
+      });
+    }
+
     const submission = await this.prisma.rfqSubmission.create({
       data: { procurementId, vendorId, price, proposalText, status: 'DRAFT' },
     });
@@ -69,7 +97,10 @@ export class RfqSubmissionService {
       afterData: { procurementId, price },
     });
 
-    return submission;
+    return this.prisma.rfqSubmission.findUnique({
+      where: { id: submission.id },
+      include: { files: true },
+    });
   }
 
   async submit(id: string, vendorUserId: string) {
@@ -131,7 +162,10 @@ export class RfqSubmissionService {
       afterData: { procurementId: submission.procurement.id },
     });
 
-    return updated;
+    return this.prisma.rfqSubmission.findUnique({
+      where: { id },
+      include: { files: true },
+    });
   }
 
   async update(

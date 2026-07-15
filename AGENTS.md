@@ -1,8 +1,8 @@
-# eBidding Platform — AGENTS.md
+# CenBidding Platform — AGENTS.md
 
 ## Project Structure
 ```
-ebidding-final/
+CenBidding/
 ├── backend/          # NestJS 11 + Prisma + PostgreSQL
 │   ├── src/
 │   │   ├── modules/  # Feature modules (auth, procurements, ebidding, etc.)

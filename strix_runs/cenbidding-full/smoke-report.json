@@ -1,0 +1,155 @@
+{
+  "started": "2026-07-14T07:39:28.323138+00:00",
+  "finished": "2026-07-14T07:40:14.599246+00:00",
+  "frontend": "https://cenbidding.vercel.app",
+  "backend": "https://cenbidding-backend.onrender.com",
+  "passed": 23,
+  "failed": 1,
+  "total": 24,
+  "results": [
+    {
+      "name": "Backend /api/health",
+      "ok": true,
+      "detail": "status=200 body={\"status\":\"ok\"}",
+      "duration_ms": 295
+    },
+    {
+      "name": "Frontend /api proxy health",
+      "ok": true,
+      "detail": "status=200 body={\"status\":\"ok\"}",
+      "duration_ms": 285
+    },
+    {
+      "name": "Frontend home",
+      "ok": true,
+      "detail": "status=200 title='CenBidding'",
+      "duration_ms": 7663
+    },
+    {
+      "name": "Login form",
+      "ok": true,
+      "detail": "",
+      "duration_ms": 1156
+    },
+    {
+      "name": "Auth gate /dashboard",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 1268
+    },
+    {
+      "name": "Auth gate /procurements",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 1647
+    },
+    {
+      "name": "Auth gate /approvals",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 1774
+    },
+    {
+      "name": "Auth gate /vendors",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 1819
+    },
+    {
+      "name": "Auth gate /audit",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 1475
+    },
+    {
+      "name": "Auth gate /reporting",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 1110
+    },
+    {
+      "name": "Auth gate /submissions",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 1172
+    },
+    {
+      "name": "Auth gate /invitations",
+      "ok": true,
+      "detail": "landed=https://cenbidding.vercel.app/login",
+      "duration_ms": 1068
+    },
+    {
+      "name": "Login admin@ebidding.com",
+      "ok": true,
+      "detail": "https://cenbidding.vercel.app/dashboard",
+      "duration_ms": 2267
+    },
+    {
+      "name": "Login requester@ebidding.com",
+      "ok": true,
+      "detail": "https://cenbidding.vercel.app/dashboard",
+      "duration_ms": 2367
+    },
+    {
+      "name": "Login approver@ebidding.com",
+      "ok": true,
+      "detail": "https://cenbidding.vercel.app/dashboard",
+      "duration_ms": 2117
+    },
+    {
+      "name": "Login vendor@ebidding.com",
+      "ok": true,
+      "detail": "https://cenbidding.vercel.app/dashboard",
+      "duration_ms": 1740
+    },
+    {
+      "name": "Login evaluator@ebidding.com",
+      "ok": true,
+      "detail": "https://cenbidding.vercel.app/dashboard",
+      "duration_ms": 2292
+    },
+    {
+      "name": "Auth page /dashboard",
+      "ok": true,
+      "detail": "url=https://cenbidding.vercel.app/dashboard hit=True",
+      "duration_ms": 2537
+    },
+    {
+      "name": "Auth page /procurements",
+      "ok": true,
+      "detail": "url=https://cenbidding.vercel.app/procurements hit=True",
+      "duration_ms": 1384
+    },
+    {
+      "name": "Auth page /approvals",
+      "ok": true,
+      "detail": "url=https://cenbidding.vercel.app/approvals hit=True",
+      "duration_ms": 1543
+    },
+    {
+      "name": "Auth page /reporting",
+      "ok": true,
+      "detail": "url=https://cenbidding.vercel.app/reporting hit=True",
+      "duration_ms": 1498
+    },
+    {
+      "name": "Auth page /audit",
+      "ok": true,
+      "detail": "url=https://cenbidding.vercel.app/audit hit=True",
+      "duration_ms": 1432
+    },
+    {
+      "name": "Reject bad password",
+      "ok": true,
+      "detail": "url=https://cenbidding.vercel.app/login",
+      "duration_ms": 3328
+    },
+    {
+      "name": "No severe console/page errors",
+      "ok": false,
+      "detail": "count=1 sample=['Failed to load resource: the server responded with a status of 429 ()']",
+      "duration_ms": 0
+    }
+  ]
+}
