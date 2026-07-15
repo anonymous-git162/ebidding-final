@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { Box, CircularProgress, Typography, Alert, Button } from '@mui/material';
+import ErrorBoundary from '../components/ErrorBoundary';
 import AppShell from '../layouts/AppShell';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
@@ -108,7 +109,8 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <ErrorBoundary>
+          <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/" element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
@@ -133,6 +135,7 @@ export default function AppRoutes() {
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
+        </ErrorBoundary>
       </AuthProvider>
     </BrowserRouter>
   );
