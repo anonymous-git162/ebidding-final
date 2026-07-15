@@ -5,11 +5,16 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class ApprovalService {
-  constructor(private prisma: PrismaService, private auditService: AuditService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   private async syncApproverAssignments(procurementId: string, approverIds: string[]) {
     await this.prisma.procurementApprover.deleteMany({
@@ -139,6 +144,23 @@ export class ApprovalService {
       },
     });
 
+    // Notify all assigned approvers
+    const approverAssignments = await this.prisma.procurementApprover.findMany({
+      where: { procurementId },
+      include: { approver: { select: { id: true } } },
+    });
+    const approverUserIds = approverAssignments.map((a) => a.approver.id);
+    if (approverUserIds.length > 0) {
+      await this.notificationsService.createForUsers(approverUserIds, {
+        title: 'Approval Request',
+        message: `"${procurement.title || procurement.requestNo}" is pending your approval`,
+        type: 'info',
+        entityType: 'Procurement',
+        entityId: procurementId,
+        link: `/procurements/${procurementId}`,
+      });
+    }
+
     await this.auditService.log({
       module: 'approval', entityType: 'Procurement', entityId: procurementId,
       action: 'SUBMITTED_FOR_APPROVAL', actorId: userId,
@@ -161,6 +183,10 @@ export class ApprovalService {
         requester: { select: { id: true, fullName: true } },
         approverAssignments: {
           include: { approver: { select: { id: true, fullName: true } } },
+        },
+        approvals: {
+          include: { approver: { select: { id: true, fullName: true } } },
+          orderBy: { decidedAt: 'desc' },
         },
         consolidations: true,
         _count: { select: { submissions: true } },

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Card, Typography, Button, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Chip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Alert, LinearProgress,
+  TableHead, TableRow, Chip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Alert, LinearProgress, ListItemText,
 } from '@mui/material';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -95,9 +95,14 @@ export default function ApprovalsPage() {
                     <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
                     {isApprover && (
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        <Button size="small" color="success" startIcon={<Icon name="CheckCircle" />} onClick={() => setDialog({ open: true, action: 'approve', id: item.id })}>Approve</Button>
-                        <Button size="small" color="warning" startIcon={<Icon name="Undo" />} onClick={() => setDialog({ open: true, action: 'return', id: item.id })}>Return</Button>
-                        <Button size="small" color="error" startIcon={<Icon name="Cancel" />} onClick={() => setDialog({ open: true, action: 'reject', id: item.id })}>Reject</Button>
+                        {(item.approvals || []).some((a: any) => a.approverId === user?.id)
+                          ? <Chip label="Done" color="default" size="small" />
+                          : <>
+                              <Button size="small" color="success" startIcon={<Icon name="CheckCircle" />} onClick={() => setDialog({ open: true, action: 'approve', id: item.id })}>Approve</Button>
+                              <Button size="small" color="warning" startIcon={<Icon name="Undo" />} onClick={() => setDialog({ open: true, action: 'return', id: item.id })}>Return</Button>
+                              <Button size="small" color="error" startIcon={<Icon name="Cancel" />} onClick={() => setDialog({ open: true, action: 'reject', id: item.id })}>Reject</Button>
+                            </>
+                        }
                       </TableCell>
                     )}
                   </TableRow>

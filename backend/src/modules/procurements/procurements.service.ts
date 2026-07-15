@@ -361,6 +361,10 @@ export class ProcurementsService {
       throw new BadRequestException('Can only reassign approver at PENDING_APPROVAL or RETURNED_FROM_APPROVAL');
     }
 
+    if (approverIds.includes(procurement.requesterId)) {
+      throw new BadRequestException('Requester cannot be assigned as their own approver');
+    }
+
     const approvers = await this.prisma.user.findMany({
       where: { id: { in: approverIds }, role: 'APPROVER', isActive: true },
       select: { id: true, fullName: true },

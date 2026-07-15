@@ -3,6 +3,7 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { ApprovalService } from './approval.service';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { mockPrisma, MockPrisma } from '../../../test/prisma-mock';
 
 describe('ApprovalService', () => {
@@ -32,6 +33,7 @@ describe('ApprovalService', () => {
         ApprovalService,
         { provide: PrismaService, useValue: prisma },
         { provide: AuditService, useValue: { log: jest.fn() } },
+        { provide: NotificationsService, useValue: { createForUsers: jest.fn(), create: jest.fn() } },
       ],
     }).compile();
 
@@ -109,6 +111,7 @@ describe('ApprovalService', () => {
         currentOwnerRole: 'APPROVER',
       });
       prisma.procurementTimeline.create.mockResolvedValue({});
+      prisma.procurementApprover.findMany.mockResolvedValue([]);
 
       const result = await service.submitForApproval('proc-1', 'user-1');
       expect(result).toHaveProperty('message', 'Sent for approval');

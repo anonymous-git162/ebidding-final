@@ -263,11 +263,13 @@ export default function ProcurementDetailPage() {
             <Button variant="outlined" color="info" startIcon={<Icon name="Assessment" />} href="/evaluation">Go to Evaluation Page</Button>
           )}
           {(role === 'APPROVER' || role === 'ADMIN') && status === 'PENDING_APPROVAL' && (
-            <>
-              <Button variant="contained" color="success" startIcon={<Icon name="Approval" />} onClick={() => setDialog({ type: 'approve', title: 'Approve Award' })}>Approve</Button>
-              <Button variant="outlined" color="warning" startIcon={<Icon name="Undo" />} onClick={() => setDialog({ type: 'return', title: 'Return for Revision' })}>Return</Button>
-              <Button variant="outlined" color="error" startIcon={<Icon name="Cancel" />} onClick={() => setDialog({ type: 'reject', title: 'Reject' })}>Reject</Button>
-            </>
+            (procurement.approvals || []).some((a: any) => a.approverId === user?.id)
+              ? <Chip label="You have acted on this" color="default" size="small" />
+              : <>
+                  <Button variant="contained" color="success" startIcon={<Icon name="Approval" />} onClick={() => setDialog({ type: 'approve', title: 'Approve Award' })}>Approve</Button>
+                  <Button variant="outlined" color="warning" startIcon={<Icon name="Undo" />} onClick={() => setDialog({ type: 'return', title: 'Return for Revision' })}>Return</Button>
+                  <Button variant="outlined" color="error" startIcon={<Icon name="Cancel" />} onClick={() => setDialog({ type: 'reject', title: 'Reject' })}>Reject</Button>
+                </>
           )}
           {role === 'PROCUREMENT' && (status === 'PENDING_APPROVAL' || status === 'RETURNED_FROM_APPROVAL') && (
             <Button variant="outlined" color="info" startIcon={<Icon name="Person" />} onClick={() => setDialog({ type: 'reassign', title: 'Reassign Approver' })}>Reassign Approver</Button>
@@ -809,7 +811,7 @@ export default function ProcurementDetailPage() {
                   }
                 }}
               >
-                {((dialog as any).approverList || []).map((a: any) => (
+                {((dialog as any).approverList || []).filter((a: any) => a.id !== (procurement as any).requester?.id).map((a: any) => (
                   <MenuItem key={a.id} value={a.id}>
                     <Checkbox checked={((dialog as any).approverIds || []).includes(a.id)} />
                     <ListItemText primary={a.fullName} secondary={a.email} />
