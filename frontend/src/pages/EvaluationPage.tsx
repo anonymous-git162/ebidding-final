@@ -29,7 +29,7 @@ export default function EvaluationPage() {
   const [criteriaForm, setCriteriaForm] = useState<{ name: string; weight: number; maxScore: number }[]>([]);
   const [aiLanguage, setAiLanguage] = useState('English');
   const LANGUAGES = ['English', 'Thai', 'Arabic', 'Japanese', 'Chinese', 'Vietnamese'];
-  const successTimer = useRef<ReturnType<typeof setTimeout>>();
+  const successTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const mountedRef = useRef(true);
 
   useEffect(() => {

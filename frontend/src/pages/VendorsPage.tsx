@@ -35,7 +35,7 @@ interface Department { id: string; name: string; }
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [createdUser, setCreatedUser] = useState<any>(null);
-  const successTimer = useRef<ReturnType<typeof setTimeout>>();
+  const successTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => () => clearTimeout(successTimer.current), []);
   const [createReveal, setCreateReveal] = useState(false);

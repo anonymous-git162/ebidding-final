@@ -18,6 +18,7 @@ export default function FileUploader({ onAttachmentsChange, initialAttachments }
   const [attachments, setAttachments] = useState<FileAttach[]>(initialAttachments ?? []);
   const [uploading, setUploading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

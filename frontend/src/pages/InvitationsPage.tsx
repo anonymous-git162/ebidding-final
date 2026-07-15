@@ -20,7 +20,7 @@ export default function InvitationsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
-  const successTimer = useRef<ReturnType<typeof setTimeout>>();
+  const successTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => () => clearTimeout(successTimer.current), []);
   const [statusFilter, setStatusFilter] = useState('ALL');
