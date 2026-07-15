@@ -109,7 +109,7 @@ export class FilesService {
 
         const resourceType = pathParts[uploadIdx - 1] || 'image';
         const afterUpload = pathParts.slice(uploadIdx + 1).join('/');
-        let bareId = afterUpload.replace(/^v\d+\//, '');
+        const bareId = afterUpload.replace(/^v\d+\//, '');
         const dotIdx = bareId.lastIndexOf('.');
         const format = dotIdx >= 0 ? bareId.slice(dotIdx + 1) : '';
         const publicId = dotIdx >= 0 ? bareId.slice(0, dotIdx) : bareId;

@@ -608,22 +608,26 @@ export class ProcurementsService {
       }
     }
 
-    const openRounds = await this.prisma.ebiddingRound.count({
-      where: { procurementId: id, status: 'OPEN' },
-    });
-    if (openRounds > 0) {
-      throw new BadRequestException('Cannot complete e-bidding while a round is still open. Close all rounds first.');
+    if (procurement.status === 'EBIDDING_OPEN') {
+      const openRounds = await this.prisma.ebiddingRound.count({
+        where: { procurementId: id, status: 'OPEN' },
+      });
+      if (openRounds > 0) {
+        throw new BadRequestException('Cannot close e-bidding while a round is still open. Close all rounds first.');
+      }
     }
+
+    const targetStatus = procurement.status === 'EBIDDING_OPEN' ? 'EBIDDING_CLOSED' : 'EVALUATION';
 
     const result = await this.transition(
       id,
-      'EVALUATION',
+      targetStatus,
       'PROCUREMENT',
       userId,
       'PROCUREMENT',
     );
 
-    if (procurement?.propertyId) {
+    if (targetStatus === 'EVALUATION' && procurement?.propertyId) {
       const evaluators = await this.prisma.user.findMany({
         where: {
           propertyId: procurement.propertyId,
