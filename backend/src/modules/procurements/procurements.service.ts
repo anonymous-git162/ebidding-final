@@ -781,6 +781,9 @@ export class ProcurementsService {
   }
 
   async resubmitForApproval(id: string, userId: string) {
+    // Clear previous approval records so each round starts fresh
+    await this.prisma.approval.deleteMany({ where: { procurementId: id } });
+
     return this.transition(
       id,
       'PENDING_APPROVAL',
