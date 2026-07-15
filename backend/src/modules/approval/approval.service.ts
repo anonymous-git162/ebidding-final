@@ -226,14 +226,27 @@ export class ApprovalService {
         data: { procurementId, approverId, decision: 'APPROVED', comment },
       });
 
-      const approvedCount = await tx.approval.count({
-        where: { procurementId, decision: 'APPROVED' },
-      });
-      const assignedCount = await tx.procurementApprover.count({
+      // Consensus: check if all assigned approvers have APPROVED as their most recent decision
+      const assignedApprovers = await tx.procurementApprover.findMany({
         where: { procurementId },
+        select: { approverId: true },
       });
+      const allApprovals = await tx.approval.findMany({
+        where: { procurementId },
+        orderBy: { decidedAt: 'desc' },
+        select: { approverId: true, decision: true },
+      });
+      // Most recent decision per approver
+      const latestDecisions = new Map<string, string>();
+      for (const a of allApprovals) {
+        if (!latestDecisions.has(a.approverId)) {
+          latestDecisions.set(a.approverId, a.decision);
+        }
+      }
+      const allApproved = assignedApprovers.length === 0
+        || assignedApprovers.every(aa => latestDecisions.get(aa.approverId) === 'APPROVED');
 
-      if (assignedCount === 0 || approvedCount >= assignedCount) {
+      if (allApproved) {
         // All assigned approvers have approved (or no explicit assignments)
         const updated = await tx.procurement.update({
           where: { id: procurementId },
@@ -255,6 +268,16 @@ export class ApprovalService {
           action: 'AWARD_APPROVED', actorId: approverId,
         });
 
+        // Notify requester that all approvers have approved
+        await this.notificationsService.create(procurement.requesterId, {
+          title: 'Award Approved',
+          message: `"${procurement.title || procurement.requestNo}" has been approved by all approvers`,
+          type: 'success',
+          entityType: 'Procurement',
+          entityId: procurementId,
+          link: `/procurements/${procurementId}`,
+        });
+
         return updated;
       }
 
@@ -270,7 +293,7 @@ export class ApprovalService {
           eventType: 'PARTIAL_APPROVAL',
           actorRole: 'APPROVER',
           actorId: approverId,
-          metadata: { comment, approvedCount, assignedCount },
+          metadata: { comment, approvedCount: assignedApprovers.filter(aa => latestDecisions.get(aa.approverId) === 'APPROVED').length + 1, assignedCount: assignedApprovers.length },
         },
       });
 
@@ -284,7 +307,7 @@ export class ApprovalService {
     });
     if (!procurement) throw new NotFoundException('Procurement not found');
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       await tx.approval.create({
         data: {
           procurementId,
@@ -320,6 +343,17 @@ export class ApprovalService {
 
       return updated;
     });
+
+    await this.notificationsService.create(procurement.requesterId, {
+      title: 'Approval Returned',
+      message: `"${procurement.title || procurement.requestNo}" was returned by an approver${reason ? `: ${reason}` : ''}`,
+      type: 'warning',
+      entityType: 'Procurement',
+      entityId: procurementId,
+      link: `/procurements/${procurementId}`,
+    });
+
+    return result;
   }
 
   async reject(procurementId: string, approverId: string, reason?: string) {
@@ -328,7 +362,7 @@ export class ApprovalService {
     });
     if (!procurement) throw new NotFoundException('Procurement not found');
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       await tx.approval.create({
         data: {
           procurementId,
@@ -365,6 +399,17 @@ export class ApprovalService {
 
       return updated;
     });
+
+    await this.notificationsService.create(procurement.requesterId, {
+      title: 'Approval Rejected',
+      message: `"${procurement.title || procurement.requestNo}" was rejected by an approver${reason ? `: ${reason}` : ''}`,
+      type: 'error',
+      entityType: 'Procurement',
+      entityId: procurementId,
+      link: `/procurements/${procurementId}`,
+    });
+
+    return result;
   }
 
   async getOverdueApprovals() {

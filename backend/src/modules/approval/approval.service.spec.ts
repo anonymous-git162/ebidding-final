@@ -150,8 +150,12 @@ describe('ApprovalService', () => {
         status: 'PENDING_APPROVAL',
       });
       prisma.approval.create.mockResolvedValue({});
-      prisma.approval.count.mockResolvedValue(1);
-      prisma.procurementApprover.count.mockResolvedValue(1);
+      prisma.procurementApprover.findMany.mockResolvedValue([
+        { approverId: 'approver-1' },
+      ]);
+      prisma.approval.findMany.mockResolvedValue([
+        { approverId: 'approver-1', decision: 'APPROVED' },
+      ]);
       prisma.procurement.update.mockResolvedValue({
         ...mockProcurement,
         status: 'AWARD_APPROVED',
@@ -173,8 +177,13 @@ describe('ApprovalService', () => {
         status: 'PENDING_APPROVAL',
       });
       prisma.approval.create.mockResolvedValue({});
-      prisma.approval.count.mockResolvedValue(1);
-      prisma.procurementApprover.count.mockResolvedValue(2);
+      prisma.procurementApprover.findMany.mockResolvedValue([
+        { approverId: 'approver-1' },
+        { approverId: 'approver-2' },
+      ]);
+      prisma.approval.findMany.mockResolvedValue([
+        { approverId: 'approver-1', decision: 'APPROVED' },
+      ]);
       prisma.procurement.update.mockResolvedValue({
         ...mockProcurement,
         status: 'PENDING_APPROVAL',
