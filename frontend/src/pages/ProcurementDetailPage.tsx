@@ -340,6 +340,7 @@ export default function ProcurementDetailPage() {
                 <Tab label="Overview" />
                 {role !== 'VENDOR' && <Tab label="Vendors" />}
                 {role !== 'VENDOR' && <Tab label="Submissions" />}
+                {role !== 'VENDOR' && <Tab label="Approvals" />}
                 {role !== 'VENDOR' && <Tab label="Evaluation" />}
               </Tabs>
             </Box>
@@ -537,6 +538,65 @@ export default function ProcurementDetailPage() {
               )}
 
               {tab === 3 && (
+                <Box>
+                  <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mb: 2 }}>Approvers</Typography>
+                  {(!procurement.approverAssignments || procurement.approverAssignments.length === 0) ? (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <Icon name="Approval" />
+                      <Typography color="text.secondary" sx={{ mt: 1 }}>No approvers assigned</Typography>
+                    </Box>
+                  ) : (
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow sx={{ bgcolor: 'action.hover' }}>
+                            <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Approver</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Status</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Comment</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Date</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {(procurement.approverAssignments || []).map((aa: any) => {
+                            const approval = (procurement.approvals || []).find((a: any) => a.approverId === aa.approverId);
+                            return (
+                              <TableRow key={aa.id}>
+                                <TableCell>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Avatar sx={{ width: 28, height: 28, bgcolor: 'info.50', fontSize: 11 }}>{aa.approver?.fullName?.charAt(0)}</Avatar>
+                                    <Typography variant="body2" fontWeight={500}>{aa.approver?.fullName}</Typography>
+                                  </Box>
+                                </TableCell>
+                                <TableCell>
+                                  {approval ? (
+                                    <Chip
+                                      label={approval.decision === 'APPROVED' ? 'Approved' : approval.decision === 'RETURNED' ? 'Returned' : 'Rejected'}
+                                      size="small"
+                                      color={approval.decision === 'APPROVED' ? 'success' : approval.decision === 'RETURNED' ? 'warning' : 'error'}
+                                    />
+                                  ) : (
+                                    <Chip label="Pending" size="small" />
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant="body2">{approval?.comment || '—'}</Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {approval ? new Date(approval.decidedAt).toLocaleDateString() : '—'}
+                                  </Typography>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+                </Box>
+              )}
+
+              {tab === 4 && (
                 <Box>
                   {role === 'PROCUREMENT' && status === 'EVALUATION' && (
                     <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', mb: 2, bgcolor: 'grey.50' }}>

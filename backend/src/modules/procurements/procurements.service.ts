@@ -253,6 +253,10 @@ export class ProcurementsService {
         approverAssignments: {
           include: { approver: { select: { id: true, fullName: true, email: true } } },
         },
+        approvals: {
+          include: { approver: { select: { id: true, fullName: true, email: true } } },
+          orderBy: { decidedAt: 'desc' },
+        },
         result: {
           include: { winningVendor: { select: { id: true, companyName: true, userId: true } } },
         },
