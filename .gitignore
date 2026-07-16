@@ -6,6 +6,8 @@ dist/
 coverage/
 *.md
 .mimocode/
+.opencode/
+.husky/
 session-*
 Enterprise *
 storybook-static/
