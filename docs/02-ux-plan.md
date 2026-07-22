@@ -1,4 +1,4 @@
-# E-Bidding Platform — UX Plan & User Journey
+# CenBidding Platform — UX Plan & User Journey
 
 ## Navigation Structure (Role-Based Sidebar)
 ```

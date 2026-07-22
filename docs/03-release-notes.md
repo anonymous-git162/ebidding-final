@@ -1,4 +1,4 @@
-# E-Bidding Platform — Release Notes
+# CenBidding Platform — Release Notes
 
 ## Version: 1.0.0 (MVP)
 **Date**: 2026-06-21
@@ -110,17 +110,11 @@ npm run dev
 
 ### Known Limitations (MVP)
 1. No email notifications (in-app only)
-2. No AI/Copilot integration yet (architecture ready)
-3. No file upload via UI (API ready)
-4. No real-time bidding (WebSocket not yet implemented)
-5. No multi-language support
-6. No SSO/LDAP integration
+2. No multi-language support
+3. No SSO/LDAP integration
 
 ### Next Phase Recommendations
-1. Add WebSocket for real-time bidding updates
-2. Integrate email service for notifications
-3. Add AI copilot for evaluation summaries
-4. Implement file upload UI
-5. Add reporting/analytics dashboard
-6. Add multi-property data scoping
-7. Add E2E tests (Cypress/Playwright)
+1. Integrate email service for notifications
+2. Add reporting/analytics dashboard
+3. Add multi-property data scoping
+4. Add E2E tests (Cypress/Playwright)

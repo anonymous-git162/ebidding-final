@@ -1,4 +1,4 @@
-# E-Bidding Platform — Product Brief & Scope
+# CenBidding Platform — Product Brief & Scope
 
 ## Vision
 Enterprise-grade E-Bidding web application for multi-property procurement lifecycle management.
@@ -6,7 +6,7 @@ Enterprise-grade E-Bidding web application for multi-property procurement lifecy
 ## Core Modules
 1. **Procurement Management** — Create/manage RFI, RFP, RFQ requests
 2. **Vendor Management** — Vendor master data, invitations, proposals
-3. **E-Bidding Module** — Multi-round blind bidding with countdown
+3. **E-Bidding Module** — Multi-round blind bidding
 4. **Evaluation Module** — Multi-evaluator scoring, AI assist, lead consolidation
 5. **Approval Workflow** — Multi-step approval with return/reject
 6. **Audit & Timeline** — Full audit trail and timeline events

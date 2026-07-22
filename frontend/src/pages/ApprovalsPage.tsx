@@ -9,6 +9,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 import { TYPE_COLORS } from '../utils/statusColors';
+import { CURRENCY_MAP } from '../utils/constants';
 
 const ESCALATION_COLORS: Record<string, string> = {
   CRITICAL: 'error.main', WARNING: 'warning.dark', OVERDUE: 'warning.main', NORMAL: 'text.secondary',
@@ -129,7 +130,7 @@ export default function ApprovalsPage() {
                       <Chip label={item.requestType} size="small" sx={{ bgcolor: 'action.hover', color: typeColor, fontWeight: 600 }} />
                     </TableCell>
                     <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{item.requester?.fullName || '-'}</TableCell>
-                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{item.budgetEstimate ? `$${Number(item.budgetEstimate).toLocaleString()}` : '—'}</TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{item.budgetEstimate ? `${CURRENCY_MAP[item.currency]?.symbol || '$'}${Number(item.budgetEstimate).toLocaleString()}` : '—'}</TableCell>
                     <TableCell><StatusBadge status={item.status} /></TableCell>
                     {isApprover && (
                       <TableCell onClick={(e) => e.stopPropagation()}>

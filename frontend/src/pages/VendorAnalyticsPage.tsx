@@ -11,6 +11,7 @@ import {
 import api from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 import KpiCard from '../components/KpiCard';
+import { CURRENCY_MAP } from '../utils/constants';
 
 interface VendorAnalytics {
   vendor: { id: string; companyName: string };
@@ -288,7 +289,7 @@ export default function VendorAnalyticsPage() {
                   <Box>
                     <Typography variant="body2" fontWeight={500}>{order.title}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {order.requestNo} | {order.budgetEstimate ? `$${Number(order.budgetEstimate).toLocaleString()}` : 'N/A'} | {new Date(order.createdAt).toLocaleDateString()}
+                      {order.requestNo} | {order.budgetEstimate ? `${CURRENCY_MAP[order.currency]?.symbol || '$'}${Number(order.budgetEstimate).toLocaleString()}` : 'N/A'} | {new Date(order.createdAt).toLocaleDateString()}
                     </Typography>
                   </Box>
                   <Chip label={order.status?.replace(/_/g, ' ') || '—'} size="small" color="success" />
@@ -306,9 +307,9 @@ export default function VendorAnalyticsPage() {
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie data={invitationData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                      {invitationData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
+                       {invitationData.map((entry) => (
+                         <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                       ))}
                     </Pie>
                     <Tooltip />
                   </PieChart>

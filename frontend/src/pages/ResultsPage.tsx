@@ -9,6 +9,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 import { TYPE_COLORS, TYPE_COLORS_BG } from '../utils/statusColors';
+import { CURRENCY_MAP } from '../utils/constants';
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'All Results' },
@@ -204,7 +205,7 @@ export default function ResultsPage() {
                     <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                       <Chip label={item.requestType} size="small" sx={{ bgcolor: TYPE_COLORS_BG[item.requestType] || 'action.hover', color: typeColor, fontWeight: 600 }} />
                     </TableCell>
-                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{item.budgetEstimate ? `${item.currency === 'EUR' ? '€' : item.currency === 'GBP' ? '£' : item.currency === 'THB' ? '฿' : '$'}${Number(item.budgetEstimate).toLocaleString()} ${item.currency || 'USD'}` : '—'}</TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{item.budgetEstimate ? `${CURRENCY_MAP[item.currency]?.symbol || '$'}${Number(item.budgetEstimate).toLocaleString()} ${item.currency || 'USD'}` : '—'}</TableCell>
                     <TableCell><StatusBadge status={item.status} /></TableCell>
                     <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>

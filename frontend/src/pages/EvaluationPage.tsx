@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { CURRENCY_MAP } from '../utils/constants';
 
 export default function EvaluationPage() {
   const { user } = useAuth();
@@ -286,7 +287,7 @@ export default function EvaluationPage() {
                           <TableHead>
                             <TableRow>
                               <TableCell>Vendor</TableCell>
-                              <TableCell>Price</TableCell>
+                              <TableCell>Price{procurements.find(p => p.id === selected)?.currency ? ` (${procurements.find(p => p.id === selected)?.currency})` : ''}</TableCell>
                               <TableCell>{criteria.length ? 'Per-Criterion Scores' : 'Your Score (0-100)'}</TableCell>
                               <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Weighted</TableCell>
                               <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Comment</TableCell>
@@ -315,7 +316,7 @@ export default function EvaluationPage() {
                                       </Typography>
                                     </Box>
                                   </TableCell>
-                                  <TableCell>${Number(sub.lastBid ?? sub.price).toLocaleString()}</TableCell>
+                                  <TableCell>{`${(CURRENCY_MAP[procurements.find(p => p.id === selected)?.currency || 'USD']?.symbol || '$')}${Number(sub.lastBid ?? sub.price).toLocaleString()}`}</TableCell>
                                   <TableCell>
                                     {criteria.length > 0 ? (
                                       <Box sx={{ minWidth: 250 }}>

@@ -12,6 +12,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 import { TYPE_COLORS } from '../utils/statusColors';
+import { CURRENCY_MAP } from '../utils/constants';
 
 const STATUS_FLOW = ['DRAFT','SUBMITTED','UNDER_PROCUREMENT_REVIEW','RETURNED_FOR_REVISION','APPROVED','RFI_PUBLISHED','RFI_COLLECTING','RFI_CLOSED','RFP_DRAFTING','RFP_PUBLISHED','RFQ_OPEN','VENDOR_RESPONSE_IN_PROGRESS','EBIDDING_PREP','EBIDDING_OPEN','EBIDDING_CLOSED','EVALUATION','PENDING_APPROVAL','RETURNED_FROM_APPROVAL','AWARD_APPROVED','AWARD_ANNOUNCED','COMPLETED','REJECTED','CANCELLED'];
 
@@ -402,7 +403,7 @@ export default function ProcurementDetailPage() {
                     {[
                       ['Property', procurement.property?.name, 'People'],
                       ['Category', procurement.category, 'Assignment'],
-                      ['Budget', procurement.budgetEstimate ? `$${Number(procurement.budgetEstimate).toLocaleString()}` : 'Not specified', 'Assessment'],
+                      ['Budget', procurement.budgetEstimate ? `${CURRENCY_MAP[procurement.currency]?.symbol || '$'}${Number(procurement.budgetEstimate).toLocaleString()}` : 'Not specified', 'Assessment'],
                       ['Invitations', `${procurement._count?.invitations || 0} vendors`, 'Mail'],
                       ['Submissions', `${procurement._count?.submissions || 0} received`, 'Send'],
                       ['Current Owner', procurement.currentOwnerRole?.replace(/_/g, ' '), 'Person'],
@@ -506,7 +507,7 @@ export default function ProcurementDetailPage() {
                           {(procurement.submissions || []).map((sub: any) => (
                             <TableRow key={sub.id}>
                               {role !== 'VENDOR' && <TableCell>{sub.vendor?.companyName || '—'}</TableCell>}
-                               <TableCell>${Number(sub.price).toLocaleString()}</TableCell>
+                               <TableCell>{`${CURRENCY_MAP[procurement.currency]?.symbol || '$'}${Number(sub.price).toLocaleString()}`}</TableCell>
                                <TableCell>
                       {sub.files && sub.files.length > 0 ? (
                                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -832,7 +833,7 @@ export default function ProcurementDetailPage() {
               >
                 <option value="">Select winner...</option>
                 {(procurement.submissions || []).map((sub: any) => (
-                  <option key={sub.vendorId} value={sub.vendorId}>{sub.vendor?.companyName || 'Unknown'} — ${Number(sub.lastBid ?? sub.price).toLocaleString()}</option>
+                  <option key={sub.vendorId} value={sub.vendorId}>{sub.vendor?.companyName || 'Unknown'} — {`${CURRENCY_MAP[procurement.currency]?.symbol || '$'}${Number(sub.lastBid ?? sub.price).toLocaleString()}`}</option>
                 ))}
               </TextField>
               <TextField fullWidth multiline rows={3} label="Announcement Text" value={(dialog as any).announcementText || ''} onChange={(e) => setDialog(prev => prev ? { ...prev, announcementText: e.target.value } as any : null)} placeholder="Add announcement details..." />
