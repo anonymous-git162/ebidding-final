@@ -17,6 +17,7 @@ interface Bid {
   submittedAt: string;
   vendor?: { id: string; companyName: string };
   vendorId: string;
+  files?: Array<{ id: string; fileName: string; fileSize: number }>;
 }
 
 interface Round {
